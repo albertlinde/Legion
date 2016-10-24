@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="Legion: Overlay Geo-Optimized examples">
+    <meta name="author" content="http://novasys.di.fct.unl.pt/~alinde/">
+
+    <title>Legion: Overlay Geo-Optimized examples</title>
+
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="./../../framework/client/adapter.js"></script>
+
+    <script src="./../legion-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
+
+    <script type="text/javascript" src="./../../node_modules/vis/dist/vis.js"></script>
+    <link href="./../../node_modules/vis/dist/vis.css" rel="stylesheet" type="text/css"/>
+
+</head>
+
+<body role="document">
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="">Legion </a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+            </ul>
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container theme-showcase" role="main">
+    <div class="jumbotron">
+        <p>.</p>
+    </div>
+
+    <div class="page-header">
+        <h1>Dv: <span id="a"></span></h1>
+    </div>
+
+    <script type="application/javascript">
+        var http = new HTTPPinger(["http://nu.nl", "http://dn.pt", "http://di.fct.unl.pt", "http://www.sanfrancisco.com", "http://nytimes.com","http://10.171.239.72:8000/test.html", "http://localhost:8000", "a"], function (data) {
+            var list = $("#a")[0];
+
+            list.innerHTML = "<strong>" + data + " </strong>";
+        });
+        http.start();
+    </script>
+</div>
+
+</body>
+</html>
+

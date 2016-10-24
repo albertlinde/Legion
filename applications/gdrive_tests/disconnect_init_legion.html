@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>Legion</title>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script type="application/javascript" src="https://www.gstatic.com/realtime/realtime-client-utils.js"></script>
+
+    <script src="./../../framework/client/adapter.js"></script>
+    <script src="./../legion-min.js"></script>
+    <script src="./../drive-ext-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
+
+</head>
+<body>
+<div>
+    <p>Console.</p>
+</div>
+<script type="application/javascript">
+    var CLIENT_ID = '1073496658879-9lia1jb7a5fcm6t6j8k8jvjr26u5ujes.apps.googleusercontent.com';
+
+    var realtimeUtils = new utils.RealtimeUtils({clientId: CLIENT_ID});
+    var lru = new LegionRealtimeUtils(realtimeUtils);
+
+    authorize();
+
+    function authorize() {
+        realtimeUtils.authorize(function (response) {
+            if (response.error) {
+                console.log(error);
+            } else {
+                start();
+            }
+        }, false);
+    }
+
+    function start() {
+        var id = realtimeUtils.getParam('id');
+        if (id) {
+            lru.load(id.replace('/', ''), onFileLoaded, onFileInitialize);
+        } else {
+            realtimeUtils.createRealtimeFile('New Quickstart File', function (createResponse) {
+                console.log("?id=" + createResponse.id);
+                realtimeUtils.load(createResponse.id, onFileLoaded, onFileInitialize);
+            });
+        }
+    }
+
+    var m;
+    function onFileInitialize(model) {
+        console.log("onFileInitialize 1");
+        m = model;
+
+        var map = model.createMap({
+            map: "mape"
+        });
+        model.getRoot().set('mape', map);
+
+        console.log("onFileInitialize 2");
+    }
+
+    var g_doc;
+    var collaborativeMap;
+    function onFileLoaded(doc) {
+        console.log("onFileLoaded 1");
+        g_doc = doc;
+        collaborativeMap = doc.getModel().getRoot().get('mape');
+        wireMap(collaborativeMap);
+        console.log("onFileLoaded 2");
+    }
+
+
+    function wireMap(collaborativeMap) {
+        console.log(collaborativeMap.getId());
+    }
+
+
+</script>
+</body>
+</html>

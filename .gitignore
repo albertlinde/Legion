@@ -1,0 +1,7 @@
+.idea
+node_modules
+.DS_Store
+*.pem
+run
+applications/drive-ext-min.js
+applications/legion-min.js

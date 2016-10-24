@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="Legion: map examples">
+    <meta name="author" content="http://novasys.di.fct.unl.pt/~alinde/">
+
+    <title>Legion: Map examples</title>
+
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="./../../framework/client/adapter.js"></script>
+
+    <script src="./../legion-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
+</head>
+
+<body role="document">
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">Legion showcase</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="index.html">Back</a></li>
+                <li class="active"><a href="#">Map examples</a></li>
+            </ul>
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container theme-showcase" role="main">
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <h1>Legion Map Examples</h1>
+
+        <p>This page contains examples of using the Legion framework.</p>
+    </div>
+    <div class="page-header">
+        <h1>Usage</h1>
+    </div>
+<pre class="prettyprint linenums">
+    var legion = new Legion();
+    legion.join();
+    var objectStore = legion.getObjectStore();
+
+    var map = objectStore.get("mapID", legion.Map);
+
+    map.set(key, value);
+    map.get(key);
+    map.delete(key);
+
+    console.log(map.asArray());          //Array of pairs
+    console.log(map.keys());             //Array
+    console.log(map.values());           //Array
+    console.log(map.contains(element));  //Boolean
+    console.log(map.size());             //Number
+</pre>
+    <div class="page-header">
+        <h1>Example</h1>
+    </div>
+
+    <div id="example">
+        <div class="row">
+            <div class="col-md">
+                <div class="container">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Input</h3>
+                        </div>
+                        <div class="panel-body">
+                            Key:
+                            <input type="text" id="map_key" placeholder="key" value="key">
+                            Value:
+                            <input type="text" id="map_value" placeholder="value" value="value">
+                        </div>
+                    </div>
+                </div>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Set(key, value)</th>
+                        <th>Delete(key)</th>
+                        <th>Size</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>
+                            <button onclick="add_1()" id="add_1" type="button"
+                                    class="btn btn-xs btn-success disabled">Set
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="remove_1()" id="remove_1" type="button"
+                                    class="btn btn-xs btn-success disabled">Remove
+                            </button>
+                        </td>
+                        <td><span id="map_1_value"></span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>
+                            <button onclick="add_2()" id="add_2" type="button"
+                                    class="btn btn-xs btn-success disabled">Set
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="remove_2()" id="remove_2" type="button"
+                                    class="btn btn-xs btn-success disabled">Remove
+                            </button>
+                        </td>
+                        <td><span id="map_2_value"></span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>
+                            <button onclick="add_3()" id="add_3" type="button"
+                                    class="btn btn-xs btn-success disabled">Set
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="remove_3()" id="remove_3" type="button"
+                                    class="btn btn-xs btn-success disabled">Remove
+                            </button>
+                        </td>
+                        <td><span id="map_3_value"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Map 1 Elements</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group" id="list_map_1">
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Map 2 Elements</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group" id="list_map_2">
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Map 3 Elements</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group" id="list_map_3">
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        var map_1;
+        var map_2;
+        var map_3;
+
+        var legion = new Legion();
+        legion.join();
+        var objectStore = legion.getObjectStore();
+
+
+        map_1 = objectStore.getOrCreate("map_1", legion.Map);
+        map_2 = objectStore.getOrCreate("map_2", legion.Map);
+        map_3 = objectStore.getOrCreate("map_3", legion.Map);
+
+        map_1.setOnStateChange(function (updates, meta) {
+            //console.log("Map 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_1.asArray()));
+            mapChanged("#list_map_1", map_1.asArray(), 1);
+        });
+        map_2.setOnStateChange(function (updates, meta) {
+            //console.log("Map 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_2.asArray()));
+            mapChanged("#list_map_2", map_2.asArray(), 2);
+        });
+        map_3.setOnStateChange(function (updates, meta) {
+            //console.log("Map 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_3.asArray()));
+            mapChanged("#list_map_3", map_3.asArray(), 3);
+        });
+
+        legion.onJoin(function () {
+
+            $("#add_1").removeClass("disabled");
+            $("#remove_1").removeClass("disabled");
+
+            $("#add_2").removeClass("disabled");
+            $("#remove_2").removeClass("disabled");
+
+            $("#add_3").removeClass("disabled");
+            $("#remove_3").removeClass("disabled");
+
+            mapChanged("#list_map_1", map_1.asArray(), 1);
+            mapChanged("#list_map_2", map_2.asArray(), 2);
+            mapChanged("#list_map_3", map_3.asArray(), 3);
+        });
+
+        var mapChanged = function (list_html_id, array, type) {
+            /*
+             $(list_html_id)[0].innerHTML = "";
+             for (var i = 0; i < array.length; i++) {
+             $(list_html_id)[0].innerHTML = $(list_html_id)[0].innerHTML + ('<li class="list-group-item">' + array[i] + '</li>');
+             }
+             */
+            $("#map_" + type + "_value")[0].textContent = array.length;
+        };
+
+        var getKeyValue = function () {
+            return {k: $("#map_key")[0].value, v: $("#map_value")[0].value};
+        };
+
+        var add_1 = function () {
+            var kv = getKeyValue();
+            map_1.set(kv.k, kv.v);
+        };
+        var add_2 = function () {
+            var kv = getKeyValue();
+            map_2.set(kv.k, kv.v);
+        };
+        var add_3 = function () {
+            var kv = getKeyValue();
+            map_3.set(kv.k, kv.v);
+        };
+        var remove_1 = function () {
+            var kv = getKeyValue();
+            map_1.delete(kv.k);
+        };
+        var remove_2 = function () {
+            var kv = getKeyValue();
+            map_2.delete(kv.k);
+        };
+        var remove_3 = function () {
+            var kv = getKeyValue();
+            map_3.delete(kv.k);
+        };
+
+        var addN = function (N, map) {
+            for (var i = 0; i < N; i++) {
+                var rand = Math.random().toFixed(3);
+                map.set(rand, Math.random().toFixed(3));
+            }
+        };
+        var remN = function (N, map) {
+            for (var i = 0; i < N; i++) {
+                var rand = Math.random();
+                var keys = map.keys();
+                var key = keys[Math.floor(keys.length * rand)];
+                map.delete(key);
+            }
+        };
+        var times = 0;
+        var a, b, c;
+        setTimeout(function () {
+            a = setInterval(function () {
+                times--;
+                if (times <= 0) {
+                    clearInterval(a);
+                    clearInterval(b);
+                    clearInterval(c);
+                }
+                addN(5, map_1);
+            }, 100);
+            b = setInterval(function () {
+                times--;
+                if (times <= 0) {
+                    clearInterval(a);
+                    clearInterval(b);
+                    clearInterval(c);
+                }
+                addN(3, map_2);
+            }, 150);
+            c = setInterval(function () {
+                times--;
+                if (times <= 0) {
+                    clearInterval(a);
+                    clearInterval(b);
+                    clearInterval(c);
+                }
+                remN(3, map_1);
+                remN(1, map_2);
+            }, 100);
+        }, 1000);
+
+    </script>
+</div>
+
+</body>
+</html>
+

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="Legion: counter examples">
+    <meta name="author" content="http://novasys.di.fct.unl.pt/~alinde/">
+
+    <title>Legion: Counter examples</title>
+
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="./../../framework/client/adapter.js"></script>
+
+    <script src="./../../applications/legion-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
+</head>
+
+<body role="document">
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">Legion showcase</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="index.html">Back</a></li>
+                <li class="active"><a href="#">Counter Examples</a></li>
+            </ul>
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container theme-showcase" role="main">
+
+    <div class="jumbotron">
+        <h1>Legion Counter examples</h1>
+
+        <p>This page contains examples of using the Legion framework.</p>
+    </div>
+    <div class="page-header">
+        <h1>Usage</h1>
+    </div>
+<pre class="prettyprint linenums">
+    var legion = new Legion();                    //New Legion instance.
+    legion.join();                                //Join the network.
+    var objectStore = legion.getObjectStore();    //Object API.
+
+    var counter = objectStore.getOrCreate("objectID1", legion.Counter);
+
+    counter.increment(1);                         //Argument must be >= 1
+        //-> 1
+    counter.decrement(1);                         //Argument must be >= 1
+        //-> 0
+    counter.increment(138);
+        //-> 138
+    counter.decrement(138);
+        //-> 0
+
+    console.log(counter.getValue());              //Returns the current value.
+        //-> 0
+</pre>
+    <div class="page-header">
+        <h1>Example</h1>
+    </div>
+
+    <div id="example">
+        <div class="row">
+            <div class="col-md">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Counter</th>
+                        <th>Add(1)</th>
+                        <th>Remove(1)</th>
+                        <th>Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>
+                            <button onclick="inc_1()" id="inc_1" type="button"
+                                    class="btn btn-xs btn-success disabled">Increment
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="dec_1()" id="dec_1" type="button"
+                                    class="btn btn-xs btn-success disabled">Decrement
+                            </button>
+                        </td>
+                        <td><span id="counter_1_value"></span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>
+                            <button onclick="inc_2()" id="inc_2" type="button"
+                                    class="btn btn-xs btn-success disabled">Increment
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="dec_2()" id="dec_2" type="button"
+                                    class="btn btn-xs btn-success disabled">Decrement
+                            </button>
+                        </td>
+                        <td><span id="counter_2_value"></span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>
+                            <button onclick="inc_3()" id="inc_3" type="button"
+                                    class="btn btn-xs btn-success disabled">Increment
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="dec_3()" id="dec_3" type="button"
+                                    class="btn btn-xs btn-success disabled">Decrement
+                            </button>
+                        </td>
+                        <td><span id="counter_3_value"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        var counter_1, counter_2, counter_3;
+
+        var legion = new Legion();
+        legion.join();
+        var objectStore = legion.getObjectStore();
+
+        counter_1 = objectStore.getOrCreate("counter_1", legion.Counter);
+        counter_2 = objectStore.getOrCreate("counter_2", legion.Counter);
+        counter_3 = objectStore.getOrCreate("counter_3", legion.Counter);
+
+        counter_1.setOnStateChange(function (updates, meta) {
+            console.log("Counter 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_1.getValue()));
+            $("#counter_1_value")[0].textContent = counter_1.getValue();
+        });
+        counter_2.setOnStateChange(function (updates, meta) {
+            console.log("Counter 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_2.getValue()));
+            $("#counter_2_value")[0].textContent = counter_2.getValue();
+        });
+        counter_3.setOnStateChange(function (updates, meta) {
+            console.log("Counter 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_3.getValue()));
+            $("#counter_3_value")[0].textContent = counter_3.getValue();
+        });
+
+        legion.onJoin(function () {
+
+            $("#inc_1").removeClass("disabled");
+            $("#dec_1").removeClass("disabled");
+            $("#counter_1_value")[0].textContent = counter_1.getValue();
+            $("#inc_2").removeClass("disabled");
+            $("#dec_2").removeClass("disabled");
+            $("#counter_2_value")[0].textContent = counter_2.getValue();
+            $("#inc_3").removeClass("disabled");
+            $("#dec_3").removeClass("disabled");
+            $("#counter_3_value")[0].textContent = counter_3.getValue();
+
+        });
+
+        var inc_1 = function () {
+            counter_1.increment(1);
+        };
+        var dec_1 = function () {
+            counter_1.decrement(1);
+        };
+        var inc_2 = function () {
+            counter_2.increment(1);
+        };
+        var dec_2 = function () {
+            counter_2.decrement(1);
+        };
+        var inc_3 = function () {
+            counter_3.increment(1);
+        };
+        var dec_3 = function () {
+            counter_3.decrement(1);
+        };
+    </script>
+</div>
+
+</body>
+</html>
+

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <meta name="description" content="Your description goes here"/>
+    <meta name="keywords" content="your,keywords,goes,here"/>
+    <meta name="author" content="Your Name"/>
+    <title>GAPI</title>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script type="application/javascript" src="https://www.gstatic.com/realtime/realtime-client-utils.js"></script>
+
+</head>
+
+<body class="grey">
+<div id="container">
+    <div id="content">
+        <div class="splitcontentleft">
+            <button id=auth_button>AUTHORIZE!</button>
+
+            <h2>Data:</h2>
+
+            <div class="box">
+                <div>
+                    <h1>Map:</h1>
+                    <input placeholder="key" type="text" id="map_key">
+                    <input placeholder="value" type="text" id="map_value">
+
+                    <button onclick="map_remove()" id="map_remove">Remove</button>
+                    <button onclick="map_set()" id="map_set">Set</button>
+                    <div id="map">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="splitcontentright">
+            <h2>About The Thing.</h2>
+
+            <p>Thing.</p>
+
+
+        </div>
+    </div>
+
+    <div id="footer">
+        <p>&copy; 2015 Albert Linde | NOVA LINCS</p>
+    </div>
+
+</div>
+<script type="application/javascript">
+    console.log("hi.");
+    var CLIENT_ID = '1073496658879-9lia1jb7a5fcm6t6j8k8jvjr26u5ujes.apps.googleusercontent.com';
+
+    var realtimeUtils = new utils.RealtimeUtils({clientId: CLIENT_ID});
+
+    authorize();
+
+    function authorize() {
+        realtimeUtils.authorize(function (response) {
+            if (response.error) {
+                var button = document.getElementById('auth_button');
+                button.classList.add('visible');
+                button.addEventListener('click', function () {
+                    realtimeUtils.authorize(function (response) {
+                        start();
+                    }, true);
+                });
+            } else {
+                start();
+            }
+        }, false);
+    }
+
+    function start() {
+        var id = realtimeUtils.getParam('id');
+        if (id) {
+            realtimeUtils.load(id.replace('/', ''), onFileLoaded, onFileInitialize);
+        } else {
+            realtimeUtils.createRealtimeFile('New Quickstart File', function (createResponse) {
+                window.history.pushState(null, null, '?id=' + createResponse.id);
+                realtimeUtils.load(createResponse.id, onFileLoaded, onFileInitialize);
+            });
+        }
+    }
+
+    var m;
+    // The first time a file is opened, it must be initialized with the
+    // document structure. This function will add a collaborative string
+    // to our model at the root.
+    function onFileInitialize(model) {
+        m = model;
+        console.log("onFileInitialize");
+
+        var map = model.createMap({
+            key1: 'value 1',
+            key2: 'value 2',
+            key3: 'value 3'
+        });
+        model.getRoot().set('demo_map', map);
+    }
+
+    var g_doc;
+    function onFileLoaded(doc) {
+        console.log("onFileLoad");
+        g_doc = doc;
+
+        collaborativeMap = doc.getModel().getRoot().get('demo_map');
+
+
+        wireMap(collaborativeMap);
+    }
+
+    function wireMap(collaborativeMap) {
+        collaborativeMap.addEventListener(gapi.drive.realtime.EventType.VALUE_CHANGED, function (evt) {
+            console.info("Map VALUE_CHANGED");
+            resetMapHtml(collaborativeMap.items());
+        });
+        resetMapHtml(collaborativeMap.items());
+    }
+
+    /**
+     *
+     * #
+     * #
+     * # variables
+     * #
+     * #
+     *
+     */
+
+    var collaborativeMap;
+
+    /**
+     *
+     * #
+     * #
+     * # The remaining should not change.
+     * #
+     * #
+     *
+     */
+    var resetMapHtml = function (mapItems) {
+        document.getElementById('map').innerHTML = "";
+        document.getElementById('map').appendChild(makeULFromMap(mapItems));
+    };
+
+    function getMapVal() {
+        return document.getElementById("map_value").value;
+    }
+    function getMapKey() {
+        return document.getElementById("map_key").value;
+    }
+
+    function map_remove() {
+        collaborativeMap.delete(getMapKey());
+    }
+
+    function map_set() {
+        collaborativeMap.set(getMapKey(), getMapVal());
+    }
+
+    function makeULFromMap(array) {
+        var list = document.createElement('ul');
+        for (var i = 0; i < array.length; i++) {
+            var item = document.createElement('li');
+            item.appendChild(document.createTextNode(array[i]));
+            list.appendChild(item);
+        }
+        return list;
+    }
+
+    function makeULFromList(array) {
+        var list = document.createElement('ul');
+        for (var i = 0; i < array.length; i++) {
+            var item = document.createElement('li');
+            item.appendChild(document.createTextNode(i + " : " + array[i]));
+            list.appendChild(item);
+        }
+        return list;
+    }
+
+</script>
+</body>
+</html>

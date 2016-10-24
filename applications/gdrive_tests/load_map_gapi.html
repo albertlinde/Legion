@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>GAPI</title>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script type="application/javascript" src="https://www.gstatic.com/realtime/realtime-client-utils.js"></script>
+</head>
+<body>
+<div>
+    <p>Console.</p>
+</div>
+<script type="application/javascript">
+    var CLIENT_ID = '1073496658879-9lia1jb7a5fcm6t6j8k8jvjr26u5ujes.apps.googleusercontent.com';
+
+    var realtimeUtils = new utils.RealtimeUtils({clientId: CLIENT_ID});
+
+
+    authorize();
+
+    function authorize() {
+        realtimeUtils.authorize(function (response) {
+            if (response.error) {
+                console.log(error);
+            } else {
+                start();
+            }
+        }, false);
+    }
+
+    function start() {
+        var id = realtimeUtils.getParam('id');
+        if (id) {
+            realtimeUtils.load(id.replace('/', ''), onFileLoaded, onFileInitialize);
+        } else {
+            console.error("File: " + id + " doesn't exist.");
+        }
+    }
+    function onFileInitialize(model) {
+        console.error("Should have been done!");
+    }
+
+    var g_doc;
+    var collaborativeMap;
+
+    function onFileLoaded(doc) {
+        console.log("onFileLoaded 1");
+        g_doc = doc;
+        collaborativeMap = doc.getModel().getRoot().get('test_map');
+        console.log("onFileLoaded 2");
+
+        setTimeout(function () {
+            console.log("start " + Date.now());
+            var times = 150;
+            var int = setInterval(function () {
+                if (--times < 0) {
+                    clearInterval(int);
+                    theEnd();
+                } else {
+                    doMapUpdate();
+                }
+            }, 1000);
+        }, 100 * 1000);
+    }
+
+    function theEnd() {
+        console.log("end " + Date.now());
+        console.log(collaborativeMap.keys());
+    }
+
+    function doMapUpdate() {
+        if (Math.random() > 0.2) {
+            updateMap();
+        } else {
+            put();
+        }
+    }
+
+    function randomValue() {
+        //16 chars
+        return ("" + Math.random()).substring(2, 10) + ("" + Math.random()).substring(2, 10);
+    }
+
+    function randomValue1() {
+        //8 chars
+        return ("" + Math.random()).substring(2, 10);
+    }
+
+    function updateMap() {
+        var keys = collaborativeMap.keys();
+        var pos = random(0, keys.length);
+        collaborativeMap.set(keys[pos], randomValue());
+    }
+
+    function put() {
+        collaborativeMap.set(randomValue1(), randomValue());
+    }
+
+    function random(low, high) {
+        return Math.floor(Math.random() * (high - low) + low);
+    }
+</script>
+</body>
+</html>

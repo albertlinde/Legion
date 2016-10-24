@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="Legion: set examples">
+    <meta name="author" content="http://novasys.di.fct.unl.pt/~alinde/">
+
+    <title>Legion: Set examples</title>
+
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="./../../framework/client/adapter.js"></script>
+
+    <script src="./../legion-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
+</head>
+
+<body role="document">
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">Legion showcase</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="index.html">Back</a></li>
+                <li class="active"><a href="#">Set examples</a></li>
+            </ul>
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container theme-showcase" role="main">
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <h1>Legion Set Examples</h1>
+
+        <p>This page contains examples of using the Legion framework.</p>
+    </div>
+    <div class="page-header">
+        <h1>Usage</h1>
+    </div>
+<pre class="prettyprint linenums">
+    var legion = new Legion();
+    legion.join();
+    var objectStore = legion.getObjectStore();
+
+    var set = objectStore.getOrCreate("setID", legion.Set);
+
+    set.add(element);                   //Ads if not existing.
+    set.remove(element);                //Removes if exists.
+
+    console.log(set.asArray());         //Array of elements
+    console.log(set.contains(element)); //Boolean
+    console.log(set.size());            //Number
+</pre>
+    <div class="page-header">
+        <h1>Example</h1>
+    </div>
+
+    <div id="example">
+        <div class="row">
+            <div class="col-md">
+                <div class="container">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Input</h3>
+                        </div>
+                        <div class="panel-body">
+                            <input type="text" id="set_input" placeholder="value" value="value">
+                        </div>
+                    </div>
+                </div>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Add(element)</th>
+                        <th>Remove(element)</th>
+                        <th>Size</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>
+                            <button onclick="add_1()" id="add_1" type="button"
+                                    class="btn btn-xs btn-success disabled">Add
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="remove_1()" id="remove_1" type="button"
+                                    class="btn btn-xs btn-success disabled">Remove
+                            </button>
+                        </td>
+                        <td><span id="set_1_value"></span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>
+                            <button onclick="add_2()" id="add_2" type="button"
+                                    class="btn btn-xs btn-success disabled">Add
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="remove_2()" id="remove_2" type="button"
+                                    class="btn btn-xs btn-success disabled">Remove
+                            </button>
+                        </td>
+                        <td><span id="set_2_value"></span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>
+                            <button onclick="add_3()" id="add_3" type="button"
+                                    class="btn btn-xs btn-success disabled">Add
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="remove_3()" id="remove_3" type="button"
+                                    class="btn btn-xs btn-success disabled">Remove
+                            </button>
+                        </td>
+                        <td><span id="set_3_value"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Set 1 Elements</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group" id="list_set_1">
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Set 2 Elements</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group" id="list_set_2">
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Set 3 Elements</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group" id="list_set_3">
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        var set_1;
+        var set_2;
+        var set_3;
+
+        var legion = new Legion();
+        legion.join();
+        var objectStore = legion.getObjectStore();
+
+        set_1 = objectStore.getOrCreate("set_1", legion.Set);
+        set_2 = objectStore.getOrCreate("set_2", legion.Set);
+        set_3 = objectStore.getOrCreate("set_3", legion.Set);
+
+        set_1.setOnStateChange(function (updates, meta) {
+            console.log("Set 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_1.asArray()));
+            setChanged("#list_set_1", set_1.asArray(), 1);
+        });
+        set_2.setOnStateChange(function (updates, meta) {
+            console.log("Set 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_2.asArray()));
+            setChanged("#list_set_2", set_2.asArray(), 2);
+        });
+        set_3.setOnStateChange(function (updates, meta) {
+            console.log("Set 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_3.asArray()));
+            setChanged("#list_set_3", set_3.asArray(), 3);
+        });
+
+
+        legion.onJoin(function () {
+
+            $("#add_1").removeClass("disabled");
+            $("#remove_1").removeClass("disabled");
+
+            $("#add_2").removeClass("disabled");
+            $("#remove_2").removeClass("disabled");
+
+            $("#add_3").removeClass("disabled");
+            $("#remove_3").removeClass("disabled");
+
+            setChanged("#list_set_1", set_1.asArray(), 1);
+            setChanged("#list_set_2", set_2.asArray(), 2);
+            setChanged("#list_set_3", set_2.asArray(), 3);
+
+        });
+
+        var setChanged = function (list_html_id, array, number) {
+            $(list_html_id)[0].innerHTML = "";
+            for (var i = 0; i < array.length; i++) {
+                $(list_html_id)[0].innerHTML = $(list_html_id)[0].innerHTML + ('<li class="list-group-item">' + array[i] + '</li>');
+            }
+            $("#set_" + number + "_value")[0].textContent = array.length;
+        };
+
+        var add_1 = function () {
+            set_1.add($("#set_input")[0].value);
+        };
+        var add_2 = function () {
+            set_2.add($("#set_input")[0].value);
+        };
+        var add_3 = function () {
+            set_3.add($("#set_input")[0].value);
+        };
+        var remove_1 = function () {
+            set_1.remove($("#set_input")[0].value);
+        };
+        var remove_2 = function () {
+            set_2.remove($("#set_input")[0].value);
+        };
+        var remove_3 = function () {
+            set_3.remove($("#set_input")[0].value);
+        };
+
+    </script>
+</div>
+
+</body>
+</html>
+

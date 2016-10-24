@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+sudo apt-get update
+sudo apt-get install -y git xvfb nodejs npm nodejs-legacy chromium-browser libexif12 iptraf ntp
+
+Visual client:
+chromium-browser "http://localhost:8000/gapi_login.html?id=0Bx-QiF4z2CEtc2x6Rmh3MlY5cVk" --user-data-dir=.
+
+Headless client:
+./run-headless-chromium.js "http://localhost:8000/disconnect_init_legion.html?id=a" --user-data-dir=.
+
+
+./run-headless-chromium.js "http://localhost:8000/disconnect_legion.html?id=a" --user-data-dir=./ > ./legion_run1_1.log
+./run-headless-chromium.js "http://localhost:8000/disconnect_legion.html?id=b" --user-data-dir=./ > ./legion_run2_1.log
+./run-headless-chromium.js "http://localhost:8000/disconnect_legion.html?id=c" --user-data-dir=./ > ./legion_run3_1.log
+
+firewall block:
+
+sudo iptables -A INPUT -s 216.58.217.142 -j DROP
+sudo iptables -A INPUT -s 216.58.216.142 -j DROP
+sudo iptables -A INPUT -s 173.194.33.0/24 -j DROP
+sudo iptables -A INPUT -s 173.194.121.0/24 -j DROP
+sudo iptables -A INPUT -s 173.194.0.0/16 -j DROP
+sudo iptables -A INPUT -s 216.58.216.0/24 -j DROP
+sudo iptables -A INPUT -s 216.58.218.0/24 -j DROP
+sudo iptables -A INPUT -s 216.58.0.0/16 -j DROP
+sudo iptables -A INPUT -s 74.125.228.0/24 -j DROP
+sudo iptables -A INPUT -s 74.125.22.189 -j DROP
+sudo iptables -A INPUT -s 216.58.193.110 -j DROP
+sudo iptables -A INPUT -s 74.125.28.189 -j DROP
+
+firewall unblock:
+
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -t nat -F
+sudo iptables -t mangle -F
+sudo iptables -F
+sudo iptables -X
+
+
+on errors: rm Singleton*

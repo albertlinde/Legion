@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="Legion: Overlay Cliques examples">
+    <meta name="author" content="http://novasys.di.fct.unl.pt/~alinde/">
+
+    <title>Legion: Overlay Cliques examples</title>
+
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="./../../framework/client/adapter.js"></script>
+
+    <script src="./../legion-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
+
+    <script type="text/javascript" src="./../../node_modules/vis/dist/vis.js"></script>
+    <link href="./../../node_modules/vis/dist/vis.css" rel="stylesheet" type="text/css"/>
+
+</head>
+
+<body role="document">
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">Legion showcase</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="index.html">Back</a></li>
+                <li class="active"><a href="#">Overlay Cliques Example</a></li>
+            </ul>
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container theme-showcase" role="main">
+
+    <div class="jumbotron">
+        <h1>Legion Overlay Cliques example</h1>
+
+        <p>This page contains examples of using the Legion framework.</p>
+    </div>
+
+    <div class="page-header">
+        <h1>Usage</h1>
+    </div>
+<pre class="prettyprint linenums">
+    var options = {
+        clientID: randInt(1000, 9000),
+        overlayProtocol: {
+            type: CliquesOverlay},
+            parameters: {floodInterval: 15 * 1000}
+        }
+    };
+    var objectStore, map;
+    var legion = new Legion(options);
+
+    legion.overlay.setOnChange(function(change, peerIds, serverIds){
+        if(map)
+            map.set(clientID, {peers: peerIds, servers: serverIds});
+    });
+    legion.join();
+
+    legion.onJoin(function () {
+        objectStore = legion.getObjectStore();
+        map = objectStore.get("overlay_map", Legion.OPERATIONS_Map);
+
+        map.setOnStateChange(function (updates, meta) {
+            resetGraph(map.asArray());
+        });
+    }
+</pre>
+
+    <div class="page-header">
+        <h1>Network</h1>
+    </div>
+    <div>
+        <div>
+            <p>
+                Both buttons start a client in this browser tab.
+                Only the first button keeps networking visualization active.
+                If you wish to run multiple clients it is suggested to run with no visualization in the other tabs.
+            </p>
+        </div>
+        <div class="row">
+            <button onclick="start(true)" id="add_client_v" type="button"
+                    class="btn btn-xs btn-success disabled">Add client
+            </button>
+            <button onclick="start(false)" id="add_client_nv" type="button"
+                    class="btn btn-xs btn-success disabled">Add client (no visualization)
+            </button>
+        </div>
+        <div style="height: 500px; background-color: #FAFAFA" class="row col-md-8" id="mynetwork">
+
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        var nodeTimeout = 45 * 1000;
+        var dataReset = 20 * 1000;
+        var visReset = 25 * 1000;
+
+        $("#add_client_v").removeClass("disabled");
+        $("#add_client_nv").removeClass("disabled");
+        var legion, map;
+        var vis_update;
+
+        function start(visualization) {
+
+            $("#add_client_v").addClass("disabled");
+            $("#add_client_nv").addClass("disabled");
+            vis_update = visualization;
+            var clientID = 1000 + Math.floor((Math.random() * 9999) % (10000));
+
+            var options = {
+                clientID: clientID,
+                overlayProtocol: {
+                    type: CliquesOverlay,
+                    parameters: {floodInterval: 15 * 1000}
+                },
+                objectServerConnection: {
+                    type: "NONE"
+                }
+            };
+
+            var objectStore;
+            legion = new Legion(options);
+
+            legion.overlay.setOnChange(function (change, peerIds, serverIds) {
+                if (map)
+                    map.set(clientID, {peers: peerIds, servers: serverIds, time: Date.now()});
+            });
+
+            setInterval(function () {
+                if (map) {
+                    map.set(clientID, {
+                        peers: legion.overlay.getPeerIDs(),
+                        servers: legion.overlay.getServerIDs(),
+                        time: Date.now()
+                    });
+                }
+            }, dataReset);
+
+            legion.join();
+
+            legion.onJoin(function () {
+                objectStore = legion.getObjectStore();
+                map = objectStore.getOrCreate("overlay_map", legion.Map);
+
+                if (vis_update) {
+                    setTimeout(function () {
+                        map.setOnStateChange(function (updates, meta) {
+                            resetGraph(map.asArray());
+                        });
+                    }, 15000);
+                    setInterval(function () {
+                        resetGraph(map.asArray());
+                    }, visReset)
+                }
+            });
+        }
+
+        var resetGraph = function (array) {
+            var nodes = new ALMap();
+            var edges = [];
+
+            for (var i = 0; i < array.length; i++) {
+                var id1 = parseInt(array[i][0]);
+                var data = JSON.parse(array[i][1][0]);
+                var time = data.time;
+                var color = 'blue';
+                if (time + nodeTimeout < Date.now())
+                    color = 'red';
+                //console.log(data);
+                for (var j = 0; j < data.peers.length; j++) {
+                    var id2 = parseInt(data.peers[j]);
+                    if (!nodes[id2] || (nodes[id2] == 'red'))
+                        nodes.set(id2, color);
+                    edges.push({from: id1, to: id2, value: 1, title: 'pc', color: color});
+                }
+                for (var j = 0; j < data.servers.length; j++) {
+                    nodes.set(j, color);
+                    edges.push({from: id1, to: j, value: 1, title: 'sc', color: color});
+                }
+                if (!nodes[id1] || (nodes[id1] == 'red'))
+                    nodes.set(id1, color);
+            }
+
+            var nodes2 = nodes.keys().map(function (currentObject) {
+                if (parseInt(currentObject) < 100) {
+                    return {id: parseInt(currentObject), value: 2, label: currentObject, color: nodes[currentObject]}
+                } else
+                    return {id: parseInt(currentObject), value: 1, label: currentObject, color: nodes[currentObject]}
+            });
+            edges.push({from: 0, to: 1, value: 10, title: 'scsc', color: "green"});
+            reset(nodes2, edges);
+        };
+
+        var reset = function (nodes, edges) {
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                autoResize: true
+            };
+            network = new vis.Network(container, data, options);
+        };
+
+        var nodes = [
+            {id: 0, value: 1, label: '1'},
+            {id: 1, value: 1, label: '2'}
+        ];
+
+        // create connections between people
+        // value corresponds with the amount of contact between two people
+        var edges = [
+            {from: 0, to: 1, value: 1, title: 'sc', color: 'blue'}
+        ];
+
+        // Instantiate our network object.
+        var container = document.getElementById('mynetwork');
+        var network;
+        function draw() {
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                autoResize: true
+            };
+            if (vis_update)
+                network = new vis.Network(container, data, options);
+        }
+        draw();
+    </script>
+</div>
+
+</body>
+</html>
+

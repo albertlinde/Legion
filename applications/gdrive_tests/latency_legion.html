@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>Legion</title>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script type="application/javascript" src="https://www.gstatic.com/realtime/realtime-client-utils.js"></script>
+
+    <script src="./../../framework/client/adapter.js"></script>
+    <script src="./../legion-min.js"></script>
+    <script src="./../drive-ext-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script></head>
+<body>
+<div>
+    <p>Console.</p>
+</div>
+<script type="application/javascript">
+    console.log("I'm alive!");
+    var CLIENT_ID = '1073496658879-9lia1jb7a5fcm6t6j8k8jvjr26u5ujes.apps.googleusercontent.com';
+    var realtimeUtils = new utils.RealtimeUtils({clientId: CLIENT_ID});
+    var lru = new LegionRealtimeUtils(realtimeUtils);
+
+    authorize();
+
+    function authorize() {
+        console.log("auth");
+        realtimeUtils.authorize(function (response) {
+            if (response.error) {
+                console.log(error);
+            } else {
+                start();
+            }
+        }, false);
+    }
+
+    function start() {
+        console.log("start.");
+        var id = realtimeUtils.getParam('id');
+        if (id) {
+            lru.load(id.replace('/', ''), onFileLoaded, onFileInitialize);
+        } else {
+            realtimeUtils.createRealtimeFile('New Quickstart File', function (createResponse) {
+                console.log("?id=" + createResponse.id);
+                realtimeUtils.load(createResponse.id, onFileLoaded, onFileInitialize);
+            });
+        }
+    }
+    function onFileInitialize(model) {
+        console.log("ERROR: Should have been done!");
+    }
+
+    var g_doc;
+    var collaborativeList;
+    var ID = ("" + Math.random()).substring(10);
+    var myTime = 0;
+    function onFileLoaded(doc) {
+        console.log("onFileLoaded 1");
+        g_doc = doc;
+
+        map1 = doc.getModel().getRoot().get('map1');
+        map2 = doc.getModel().getRoot().get('map2');
+
+        wireReaders(map1, map2);
+        console.log("onFileLoaded 2");
+
+        setTimeout(function () {
+            doListUpdate();
+        }, 150 * 1000);
+        setTimeout(function () {
+            calc();
+        }, 250 * 1000);
+    }
+
+    function doListUpdate() {
+        myTime = (Date.now());
+        map1.set(ID, myTime);
+        console.log("Sending: " + ID);
+        console.log("Sending: " + myTime);
+    }
+
+    function wireReaders(map1, map2) {
+        console.log(map1.getId());
+        console.log(map2.getId());
+
+        map1.addEventListener(gapi.drive.realtime.EventType.VALUE_CHANGED, function (evt) {
+            map1_changed(evt);
+        });
+        map2.addEventListener(gapi.drive.realtime.EventType.VALUE_CHANGED, function (evt) {
+            map2_changed(evt);
+        });
+    }
+
+    var done = {};
+    function map1_changed() {
+        var keys = map1.keys();
+        for (var i = 0; i < keys.length; i++) {
+            if (keys[i] == ID)continue;
+            if (!done[keys[i]]) {
+                done[keys[i]] = true;
+                map2.set(keys[i] + "_" + ID, (Date.now()))
+            }
+        }
+    }
+
+    var answers = {};
+    function map2_changed() {
+        var keys = map2.keys();
+        for (var i = 0; i < keys.length; i++) {
+            if (keys[i].startsWith(ID)) {
+                if (!answers[keys[i]]) {
+                    answers[keys[i]] = [map2.get(keys[i]), Date.now()];
+                }
+            }
+        }
+    }
+
+    function calc() {
+        var totalGoing = 0;
+        var totalReturn = 0;
+        var totalRTT = 0;
+        var clients = Object.keys(answers);
+        var clients_sent = Object.keys(done);
+        for (var i = 0; i < clients.length; i++) {
+            var delayGoing = answers[clients[i]][0] - myTime;
+            var delayReturn = answers[clients[i]][1] - myTime;
+            var delayRTT = delayGoing + delayReturn;
+            totalGoing += delayGoing;
+            totalReturn += delayReturn;
+            totalRTT += delayRTT;
+            console.info("delayGoing: " + delayGoing);
+            console.info("delayReturn: " + delayReturn);
+            console.info("delayRTT: " + delayRTT);
+        }
+        console.info("Clients: " + clients.length + " - " + clients_sent.length);
+        console.info("Total: " + totalGoing);
+        console.info("Total: " + totalReturn);
+        console.info("Total: " + totalRTT);
+        console.info("Average: " + totalGoing / clients.length);
+        console.info("Average: " + totalReturn / clients.length);
+        console.info("Average: " + totalRTT / clients.length);
+    }
+
+</script>
+</body>
+</html>

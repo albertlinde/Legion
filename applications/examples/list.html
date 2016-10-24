@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="Legion: list examples">
+    <meta name="author" content="http://novasys.di.fct.unl.pt/~alinde/">
+
+    <title>Legion: List examples</title>
+
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./../../node_modules/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="./../../framework/client/adapter.js"></script>
+
+    <script src="./../legion-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
+</head>
+
+<body role="document">
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">Legion showcase</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="index.html">Back</a></li>
+                <li class="active"><a href="#">List examples</a></li>
+            </ul>
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container theme-showcase" role="main">
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <h1>Legion List Examples</h1>
+
+        <p>This page contains examples of using the Legion framework.</p>
+    </div>
+    <div class="page-header">
+        <h1>Usage</h1>
+    </div>
+<pre class="prettyprint linenums">
+    var legion = new Legion();
+    legion.join();
+    var objectStore = legion.getObjectStore();
+
+    var list_1 = objectStore.get("list_1", List.STATE_List);
+    var list_2 = objectStore.get("list_2", List.OPERATIONS_List);
+    var list_3 = objectStore.get("list_3", List.DELTA_List);
+
+    list_*.add(pos, value);
+    list_*.remove(pos);
+    list_*.get(pos)
+
+    console.log(list_*.asArray()); //Array
+    console.log(list_*.length()); //Number
+</pre>
+    <div class="page-header">
+        <h1>Example</h1>
+    </div>
+
+    <div id="example">
+        <div class="row">
+            <div class="col-md">
+                <div class="container">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Input</h3>
+                        </div>
+                        <div class="panel-body">
+                            Position:
+                            <input type="text" placeholder="0" value="0" id="list_key">
+                            Value:
+                            <input type="text" placeholder="item" value="item" id="list_value">
+                        </div>
+                    </div>
+                </div>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Add(pos, value)</th>
+                        <th>Remove(pos)</th>
+                        <th>Length</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>State</td>
+                        <td>
+                            <button onclick="add_1()" id="add_1" type="button"
+                                    class="btn btn-xs btn-danger disabled">Add
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="remove_1()" id="remove_1" type="button"
+                                    class="btn btn-xs btn-danger disabled">Remove
+                            </button>
+                        </td>
+                        <td><span id="set_1_value"></span></td>
+                    </tr>
+                    <tr>
+                        <td>Operation</td>
+                        <td>
+                            <button onclick="add_2()" id="add_ops" type="button"
+                                    class="btn btn-xs btn-success disabled">Add
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="remove_2()" id="remove_ops" type="button"
+                                    class="btn btn-xs btn-success disabled">Remove
+                            </button>
+                        </td>
+                        <td><span id="set_2_value"></span></td>
+                    </tr>
+                    <tr>
+                        <td>Delta</td>
+                        <td>
+                            <button onclick="add_3()" id="add_3" type="button"
+                                    class="btn btn-xs btn-danger disabled">Add
+                            </button>
+                        </td>
+                        <td>
+                            <button onclick="remove_3()" id="remove_3" type="button"
+                                    class="btn btn-xs btn-danger disabled">Remove
+                            </button>
+                        </td>
+                        <td><span id="set_3_value"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">List 1 Elements</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group" id="list_list_1">
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">List 2 Elements</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group" id="list_list_2">
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">List 3 Elements</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group">
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+        var list_1;
+        var list_2;
+        var list_3;
+
+        var legion = new Legion();
+        legion.join();
+        var objectStore = legion.getObjectStore();
+
+        list_1 = objectStore.getOrCreate("list_1", legion.List);
+        list_2 = objectStore.getOrCreate("list_2", legion.List);
+        list_3 = objectStore.getOrCreate("list_3", legion.List);
+
+
+        list_1.setOnStateChange(function (updates, meta) {
+            console.log("List 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_1.getValue()));
+            listChanged("#list_list_1", list_1.asArray());
+        });
+        list_2.setOnStateChange(function (updates, meta) {
+            console.log("List 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_2.getValue()));
+            listChanged("#list_list_2", list_2.asArray());
+        });
+        list_3.setOnStateChange(function (updates, meta) {
+            console.log("List 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_3.getValue()));
+            listChanged("#list_list_3", list_3.asArray());
+        });
+
+        legion.onJoin(function () {
+
+            $("#add_1").removeClass("disabled");
+            $("#remove_1").removeClass("disabled");
+            listChanged("#list_list_1", list_1.asArray());
+            $("#add_2").removeClass("disabled");
+            $("#remove_2").removeClass("disabled");
+            listChanged("#list_list_2", list_2.asArray());
+            $("#add_3").removeClass("disabled");
+            $("#remove_3").removeClass("disabled");
+            listChanged("#list_list_3", list_3.asArray());
+        });
+
+        var listChanged = function (list_html_id, array) {
+
+            $(list_html_id)[0].innerHTML = "";
+            for (var i = 0; i < array.length; i++) {
+                $(list_html_id)[0].innerHTML = $(list_html_id)[0].innerHTML + ('<li class="list-group-item">' + array[i] + '</li>');
+            }
+        };
+
+        var getKeyValue = function () {
+            return {k: parseInt($("#list_key")[0].value), v: $("#list_value")[0].value};
+        };
+
+        var add_1 = function () {
+            var kv = getKeyValue();
+            list_1.add(kv.k, kv.v);
+        };
+        var add_2 = function () {
+            var kv = getKeyValue();
+            list_2.add(kv.k, kv.v);
+        };
+        var add_3 = function () {
+            var kv = getKeyValue();
+            list_3.add(kv.k, kv.v);
+        };
+        var remove_1 = function () {
+            var kv = getKeyValue();
+            list_1.delete(kv.k);
+        };
+        var remove_2 = function () {
+            var kv = getKeyValue();
+            list_2.delete(kv.k);
+        };
+        var remove_3 = function () {
+            var kv = getKeyValue();
+            list_3.delete(kv.k);
+        };
+
+    </script>
+</div>
+
+</body>
+</html>
+
