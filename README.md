@@ -1,6 +1,6 @@
 # Legion
 
-The Legion code base..
+The Legion code base.
 
 ### Installation
 You need node (npm) [https://nodejs.org/en/].
@@ -34,18 +34,16 @@ Logs can be found in the folder **run**.
  - /framework/shared has code used by both client and server.
  - /framework/shared/dataStructures has used data-structure implementations.
  - /framework/shared/crdtLib has CRDT implementations.
+ - /extensions/ currently has Google Drive Realtime adapter implementations.
 
 ```sh
-./compile.sh    #updates all minified JS files
+./compile.sh    #builds minified JS files
 ```
 
 ---
 
 **WIP:**
 * Currently re-building the examples to make them easier to understand. 
-* Existing data-types are being worked on.
-* Data synchronization between peers and server is under review.
-* Existing security features are under review.
 
 ### Sub projects
 [**LegionOverlayVis**](https://github.com/albertlinde/LegionOverlayVis) - A peer-to-peer overlay network visualisation tool.
