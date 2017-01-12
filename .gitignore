@@ -5,3 +5,4 @@ node_modules
 run
 applications/drive-ext-min.js
 applications/legion-min.js
+send_to_prod.sh

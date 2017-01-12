@@ -1,7 +1,7 @@
 {
   "name": "legion",
   "version": "0.1.0",
-  "description": "Peer-to-peer communication and data library.",
+  "description": "Peer-to-peer communication and data replication library.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/albertlinde/Legion.git"
@@ -12,20 +12,20 @@
     "webrtc"
   ],
   "scripts": {
-    "install": "./install.sh",
-    "start": "./run-server.sh",
-    "stop": "./kill-server.sh"
+    "install": "./install.sh"
   },
   "author": "Albert Linde (a.linde@campus.fct.unl.pt)",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/albertlinde/Legion/issues"
   },
-  "homepage": "https://github.com/albertlinde/Legion#readme",
+  "homepage": "https://github.com/albertlinde/Legion",
   "dependencies": {
     "bootstrap": "^3.3.6",
     "cors": "^2.8.1",
     "express": "^4.13.3",
+    "express-ws": "^2.0.0",
+    "helmet": "^3.3.0",
     "lzma": "~2.1.6",
     "node-forge": "^0.6.39",
     "node-persist": "~0.0.3",

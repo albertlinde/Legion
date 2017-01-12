@@ -4,10 +4,13 @@ var util = require('util');
 
 exports.AuthServer = AuthServer;
 
-function AuthServer() {
-    //TODO: a key should come from a file.
-    this.newKeyPair();
-    this.publicKeyString = JSON.stringify(forge.pki.publicKeyToAsn1(this.publicKey));
+function AuthServer(credentials) {
+    this.credentials = credentials;
+
+    this.privateKey = forge.pki.privateKeyFromPem("" + credentials.key);
+    this.publicKey = forge.pki.publicKeyFromPem("" + credentials.publicKey);
+
+    this.publicKeyString = forge.pki.publicKeyToAsn1(this.publicKey);
 
     this.keys = new ALMap();
     //TODO: ids of keys can't start at 1 every time the server is re-booted!
@@ -62,9 +65,3 @@ AuthServer.prototype.signedMessageDigest = function (string) {
     return this.privateKey.sign(md);
 };
 
-AuthServer.prototype.newKeyPair = function () {
-    var rsa = forge.pki.rsa;
-    this.keypair = rsa.generateKeyPair({bits: 1024, e: 0x10001});
-    this.privateKey = this.keypair.privateKey;
-    this.publicKey = this.keypair.publicKey;
-};

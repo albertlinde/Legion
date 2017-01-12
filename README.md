@@ -1,28 +1,36 @@
 # Legion
 
-The Legion code base.
+The code base as seen in https://legion.di.fct.unl.pt.
 
 ### Installation
-You need node (npm) [https://nodejs.org/en/].
+You will need node (npm) [https://nodejs.org/en/] and openssl [https://www.openssl.org].
+During installation you will be asked for details to create a certificate.
+Each of these can be left empty (just press enter).
+
+To install run:
+
 ```sh
-$ git clone https://github.com/albertlinde/Legion
-$ cd Legion
-$ npm install #obtains required dependencies
-$ ./compile.sh #creates minified .js files
+git clone https://github.com/albertlinde/Legion
+cd Legion
+npm install #obtains required dependencies and setups development keys.
 ```
 
 ### Running
-```sh
-$ npm start
-```
-**Start** starts HTTP, Signalling and Objects servers. \
-Open localhost:8000 in your browser.
 
+Startup now runs on ports 80 and 443.
+This requires running with sudo!
+
+If you whish to use other ports (that don't require sudo) change the ./framework/server/config.js file.
+
+To run the servers:
 ```sh
-$ npm stop
+cd ./framework/server/
+sudo node ProdServer.js #http and signalling
+sudo node ObjectsServer.js #object storage
 ```
-**Stop** shuts down all servers.
-Logs can be found in the folder **run**.
+
+Opening https://localhost in your browser will give the same page as https://legion.di.fct.unl.pt.
+This will give a warning as you are currently using self signed certificates (https://letsencrypt.org lets you obtain free certificates for deployment).
 
 ### Development
 
@@ -42,14 +50,19 @@ Logs can be found in the folder **run**.
 
 ---
 
-**WIP:**
-* Currently re-building the examples to make them easier to understand. 
+### Keys
+The folder ./framework/server/keys contains all key files (after running npm install).
+To use your own keys, simply replace the existing keys with your own.
+Note that running npm will not replace/remove existing keys.
 
 ### Sub projects
-[**LegionOverlayVis**](https://github.com/albertlinde/LegionOverlayVis) - A peer-to-peer overlay network visualisation tool.
+[**LegionOverlayVis**](https://github.com/albertlinde/LegionOverlayVis) - A simple peer-to-peer overlay network visualisation tool.
+
+---
 
 #### Contact
-Albert van der Linde http://novasys.di.fct.unl.pt/~alinde/
+Albert van der Linde
+http://novasys.di.fct.unl.pt/~alinde/
 
 #### License
 Apache-2.0

@@ -1,5 +1,24 @@
-//TODO: make constants be somewhere nice (from CRDT_Database also)
-var PORT = 8004;
+var httpServ = require('https');
+var fs = require('fs');
+
+var processRequest = function (req, res) {
+    res.writeHead(200);
+    res.end('WebSocket!\n');
+};
+
+var Config = require('./config.js');
+
+var cfg = {
+    port: Config.objectsServer.PORT,
+    ssl_key: Config.objectsServer.key,
+    ssl_cert: Config.objectsServer.cert
+};
+
+var app = httpServ.createServer({
+    key: fs.readFileSync(cfg.ssl_key),
+    cert: fs.readFileSync(cfg.ssl_cert)
+
+}, processRequest).listen(cfg.port);
 
 var PeerSync = require('./../shared/peerSync.js').PeerSync;
 var CRDT_Database = require('./CRDT_Database.js').CRDT_Database;
@@ -31,7 +50,8 @@ initService();
 function initService() {
     WebSocketServer = WebSocket.Server;
     wss = new WebSocketServer({
-        port: PORT, verifyClient: function (info, cb) {
+        server: app,
+        verifyClient: function (info, cb) {
             cb(true);
         }
     });

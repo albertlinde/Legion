@@ -6,7 +6,7 @@ function ServerConnection(server, legion) {
     this.server = server;
     this.remoteID = this.server.ip + ":" + this.server.port;
 
-    this.socket = new WebSocket("ws://" + this.server.ip + ":" + this.server.port + "");
+    this.socket = new WebSocket("wss://" + this.server.ip + ":" + this.server.port + "");
 
     var sc = this;
     this.socket.onopen = function open() {

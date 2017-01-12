@@ -14,7 +14,7 @@ function Legion(options) {
             type: GeoOptimizedOverlay,
             parameters: {
                 locator: HTTPPinger,
-                locations: ["http://di.fct.unl.pt", "http://di.fct.unl.pt"],
+                locations: ["https://di.fct.unl.pt", "https://di.fct.unl.pt"],
                 MIN_CLOSE_NODES: 3,
                 MAX_CLOSE_NODES: 5,
                 MIN_FAR_NODES: 1,
@@ -56,13 +56,13 @@ function Legion(options) {
     if (!options.signallingConnection) {
         options.signallingConnection = {
             type: ServerConnection,
-            server: {ip: "localhost", port: 8002}
+            server: {ip: window.location.hostname, port: 443}
         };
     }
     if (!options.objectServerConnection) {
         options.objectServerConnection = {
             type: ObjectServerConnection,
-            server: {ip: "localhost", port: 8004}
+            server: {ip: window.location.hostname, port: 8000}
         };
     }
     if (!options.securityProtocol) {

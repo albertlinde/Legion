@@ -5,9 +5,8 @@ function ObjectServerConnection(server, objectStore, legion) {
     this.legion = legion;
     this.remoteID = this.server.ip + ":" + this.server.port;
 
-    //TODO: wss or at the least, support for.
     try {
-        this.socket = new WebSocket("ws://" + this.server.ip + ":" + this.server.port + "");
+        this.socket = new WebSocket("wss://" + this.server.ip + ":" + this.server.port + "");
     } catch (e) {
 
     }
