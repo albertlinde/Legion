@@ -133,7 +133,11 @@
     counter.decrement(1);                         //Argument must be >= 1
     counter.increment(138);                       //Argument must be >= 1
     counter.decrement(138);                       //Argument must be >= 1
-    console.log(counter.getValue());              //Returns the current value.</pre>
+    console.log(counter.getValue());              //Returns the current value.
+    counter.setOnStateChange(function (updates, meta) {//called when data is updated
+        console.log(updates);
+        console.log(meta);
+    });</pre>
                 <div class="row">
                     <div class="col-md">
                         <table class="table">
@@ -204,7 +208,11 @@
 
     console.log(set.asArray());         //Array of elements
     console.log(set.contains(element)); //Boolean
-    console.log(set.size());            //Number</pre>
+    console.log(set.size());            //Number
+    set.setOnStateChange(function (updates, meta) {//called when data is updated
+        console.log(updates);
+        console.log(meta);
+    });</pre>
                 <div class="row">
                     <div class="col-md">
                         <div class="container">
@@ -323,7 +331,11 @@
     console.log(map.keys());             //Array
     console.log(map.values());           //Array
     console.log(map.contains(element));  //Boolean
-    console.log(map.size());             //Number</pre>
+    console.log(map.size());             //Number
+    map.setOnStateChange(function (updates, meta) {//called when data is updated
+        console.log(updates);
+        console.log(meta);
+    });</pre>
                 <div class="row">
                     <div class="col-md">
                         <div class="container">
@@ -442,7 +454,11 @@
     list.get(pos)                  //Returns  the element at given position
 
     console.log(list.asArray());   //Array of elements
-    console.log(list.length());    //Number</pre>
+    console.log(list.length());    //Number
+    list.setOnStateChange(function (updates, meta) {//called when data is updated
+        console.log(updates);
+        console.log(meta);
+    });</pre>
                 <div class="row">
                     <div class="col-md">
                         <div class="container">
