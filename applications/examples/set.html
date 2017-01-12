@@ -35,11 +35,11 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="index.html">Legion showcase</a>
+            <a class="navbar-brand" href="old_index.html">Legion showcase</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="index.html">Back</a></li>
+                <li class="active"><a href="old_index.html">Back</a></li>
                 <li class="active"><a href="#">Set examples</a></li>
             </ul>
         </div>
@@ -226,7 +226,7 @@
 
             setChanged("#list_set_1", set_1.asArray(), 1);
             setChanged("#list_set_2", set_2.asArray(), 2);
-            setChanged("#list_set_3", set_2.asArray(), 3);
+            setChanged("#list_set_3", set_3.asArray(), 3);
 
         });
 
@@ -256,6 +256,51 @@
         var remove_3 = function () {
             set_3.remove($("#set_input")[0].value);
         };
+        var addN = function (N, dataSet) {
+            for (var i = 0; i < N; i++) {
+                dataSet.add(Math.random().toFixed(3));
+            }
+        };
+        var remN = function (N, dataSet) {
+            for (var i = 0; i < N; i++) {
+                var keys = dataSet.asArray();
+                var key = keys[Math.floor(keys.length * Math.random())];
+                dataSet.remove(key);
+            }
+        };
+        var times = 50;
+        var a, b, c;
+        setTimeout(function () {
+            if (times <= 0)return;
+            a = setInterval(function () {
+                times--;
+                if (times <= 0) {
+                    clearInterval(a);
+                    clearInterval(b);
+                    clearInterval(c);
+                }
+                addN(5, set_1);
+            }, 100);
+            b = setInterval(function () {
+                times--;
+                if (times <= 0) {
+                    clearInterval(a);
+                    clearInterval(b);
+                    clearInterval(c);
+                }
+                addN(3, set_2);
+            }, 150);
+            c = setInterval(function () {
+                times--;
+                if (times <= 0) {
+                    clearInterval(a);
+                    clearInterval(b);
+                    clearInterval(c);
+                }
+                remN(3, set_1);
+                remN(1, set_2);
+            }, 100);
+        }, 1000);
 
     </script>
 </div>

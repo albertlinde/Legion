@@ -35,11 +35,11 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="index.html">Legion showcase</a>
+            <a class="navbar-brand" href="old_index.html">Legion showcase</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="index.html">Back</a></li>
+                <li class="active"><a href="old_index.html">Back</a></li>
                 <li class="active"><a href="#">Map examples</a></li>
             </ul>
         </div>
@@ -58,7 +58,7 @@
     <div class="page-header">
         <h1>Usage</h1>
     </div>
-<pre class="prettyprint linenums">
+    <pre class="prettyprint linenums">
     var legion = new Legion();
     legion.join();
     var objectStore = legion.getObjectStore();
@@ -291,6 +291,7 @@
         var times = 0;
         var a, b, c;
         setTimeout(function () {
+            if (times <= 0)return;
             a = setInterval(function () {
                 times--;
                 if (times <= 0) {

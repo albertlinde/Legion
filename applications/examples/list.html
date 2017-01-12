@@ -35,11 +35,11 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="index.html">Legion showcase</a>
+            <a class="navbar-brand" href="old_index.html">Legion showcase</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="index.html">Back</a></li>
+                <li class="active"><a href="old_index.html">Back</a></li>
                 <li class="active"><a href="#">List examples</a></li>
             </ul>
         </div>
@@ -63,9 +63,9 @@
     legion.join();
     var objectStore = legion.getObjectStore();
 
-    var list_1 = objectStore.get("list_1", List.STATE_List);
-    var list_2 = objectStore.get("list_2", List.OPERATIONS_List);
-    var list_3 = objectStore.get("list_3", List.DELTA_List);
+    var list_1 = objectStore.get("list_1", legion.List);
+    var list_2 = objectStore.get("list_2", legion.List);
+    var list_3 = objectStore.get("list_3", legion.List);
 
     list_*.add(pos, value);
     list_*.remove(pos);
@@ -106,43 +106,43 @@
                     </thead>
                     <tbody>
                     <tr>
-                        <td>State</td>
+                        <td>List 1</td>
                         <td>
                             <button onclick="add_1()" id="add_1" type="button"
-                                    class="btn btn-xs btn-danger disabled">Add
+                                    class="btn btn-xs btn-success disabled">Add
                             </button>
                         </td>
                         <td>
                             <button onclick="remove_1()" id="remove_1" type="button"
-                                    class="btn btn-xs btn-danger disabled">Remove
+                                    class="btn btn-xs btn-success disabled">Remove
                             </button>
                         </td>
                         <td><span id="set_1_value"></span></td>
                     </tr>
                     <tr>
-                        <td>Operation</td>
+                        <td>List 2</td>
                         <td>
-                            <button onclick="add_2()" id="add_ops" type="button"
+                            <button onclick="add_2()" id="add_2" type="button"
                                     class="btn btn-xs btn-success disabled">Add
                             </button>
                         </td>
                         <td>
-                            <button onclick="remove_2()" id="remove_ops" type="button"
+                            <button onclick="remove_2()" id="remove_2" type="button"
                                     class="btn btn-xs btn-success disabled">Remove
                             </button>
                         </td>
                         <td><span id="set_2_value"></span></td>
                     </tr>
                     <tr>
-                        <td>Delta</td>
+                        <td>List 3</td>
                         <td>
                             <button onclick="add_3()" id="add_3" type="button"
-                                    class="btn btn-xs btn-danger disabled">Add
+                                    class="btn btn-xs btn-success disabled">Add
                             </button>
                         </td>
                         <td>
                             <button onclick="remove_3()" id="remove_3" type="button"
-                                    class="btn btn-xs btn-danger disabled">Remove
+                                    class="btn btn-xs btn-success disabled">Remove
                             </button>
                         </td>
                         <td><span id="set_3_value"></span></td>
@@ -181,7 +181,7 @@
                             <h3 class="panel-title">List 3 Elements</h3>
                         </div>
                         <div class="panel-body">
-                            <ul class="list-group">
+                            <ul class="list-group" id="list_list_3">
 
                             </ul>
                         </div>
@@ -196,7 +196,7 @@
         var list_2;
         var list_3;
 
-        var legion = new Legion();
+        var legion = new Legion({objectServerConnection: {type: "NONE"}});
         legion.join();
         var objectStore = legion.getObjectStore();
 
@@ -219,7 +219,6 @@
         });
 
         legion.onJoin(function () {
-
             $("#add_1").removeClass("disabled");
             $("#remove_1").removeClass("disabled");
             listChanged("#list_list_1", list_1.asArray());
@@ -232,11 +231,14 @@
         });
 
         var listChanged = function (list_html_id, array) {
-
             $(list_html_id)[0].innerHTML = "";
             for (var i = 0; i < array.length; i++) {
                 $(list_html_id)[0].innerHTML = $(list_html_id)[0].innerHTML + ('<li class="list-group-item">' + array[i] + '</li>');
             }
+
+            $("#set_1_value")[0].textContent = list_1.size();
+            $("#set_2_value")[0].textContent = list_2.size();
+            $("#set_3_value")[0].textContent = list_3.size();
         };
 
         var getKeyValue = function () {
@@ -267,6 +269,53 @@
             var kv = getKeyValue();
             list_3.delete(kv.k);
         };
+
+
+        var addN = function (N, list) {
+            for (var i = 0; i < N; i++) {
+                var rand = Math.random().toFixed(3);
+                list.add(Math.floor(rand * list.size()), Math.random().toFixed(3));
+            }
+        };
+        var remN = function (N, list) {
+            for (var i = 0; i < N; i++) {
+                list.delete(Math.floor(Math.random() * list.size()));
+            }
+        };
+
+        var times = 0;
+        var a, b, c;
+        setTimeout(function () {
+            if(times<=0)return;
+            a = setInterval(function () {
+                times--;
+                if (times <= 0) {
+                    clearInterval(a);
+                    clearInterval(b);
+                    clearInterval(c);
+                }
+                addN(5, list_1);
+            }, 100);
+            b = setInterval(function () {
+                times--;
+                if (times <= 0) {
+                    clearInterval(a);
+                    clearInterval(b);
+                    clearInterval(c);
+                }
+                addN(3, list_2);
+            }, 150);
+            c = setInterval(function () {
+                times--;
+                if (times <= 0) {
+                    clearInterval(a);
+                    clearInterval(b);
+                    clearInterval(c);
+                }
+                remN(3, list_1);
+                remN(1, list_2);
+            }, 100);
+        }, 5000);
 
     </script>
 </div>
