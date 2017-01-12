@@ -173,6 +173,7 @@ CRDT_Database.prototype.getIdentifiers = function () {
 };
 
 CRDT_Database.prototype.gotContentFromNetwork = function (message, original, connection) {
+    console.log(original);
     if (!original.options)
         original.options = {};
     original.options.except = connection;
@@ -210,22 +211,8 @@ CRDT_Database.prototype.generateMessage = function (type, data, callback) {
         s: this.id,
         ID: ++this.messageCount
     };
-    if (!data) {
-        callback(message);
-    } else {
-        try {
-            Compressor.compress(JSON.stringify(data), function (response) {
-                message.compressed = response;
-                callback(message);
-            }, function (error) {
-                util.error("Compress failed!", error);
-                callback(null);
-            });
-        }
-        catch (e) {
-            console.error("Died on compress.");
-            console.error(e);
-            console.error(data);
-        }
+    if (data) {
+        message.data = data;
     }
+    callback(message);
 };

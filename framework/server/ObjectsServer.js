@@ -89,12 +89,11 @@ function initService() {
                 /**
                  * For generating messages that can be sent.
                  * Type is required.
-                 * Data (optional) is compressed to save bandwidth.
                  * @param type {String}
                  * @param data {Object}
                  * @param callback {Function}
                  */
-                    //TODO: why is this?
+                //TODO: why is this?
                 db.versionVectorDiff = CRDT.versionVectorDiff;
 
                 //TODO: will be ClientSync
@@ -158,17 +157,9 @@ function initService() {
                                 util.log(JSON.stringify(parsed));
                             }
                         };
+                        //TODO: this callback thing is no longer necessary as compression was removed.
+                        cb(parsed);
 
-                        if (parsed.compressed) {
-                            Compressor.decompress(parsed.compressed, function (result) {
-                                parsed.data = JSON.parse(result);
-                                cb(parsed);
-                            });
-                        } else {
-                            Compressor.decompress("5d00000100040000000000000000331849b7e4c02e1ffffac8a000", function (result) {
-                                cb(parsed);
-                            });
-                        }
                     } else {
                         util.log("Duplicate.")
                     }

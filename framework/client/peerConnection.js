@@ -6,7 +6,7 @@ var KEEP_ALIVE_INTERVAL = 10000;
 //TODO: also send the current key id-> if receive a higher number then re-join the network.
 var KEEP_ALIVE_MESSAGE = {type: "ka"};
 var KEEP_ALIVE_MUST_HAVE = 30000;
-
+var detailedDebug = false;
 function PeerConnection(remoteID, legion) {
     if (detailedDebug) {
         console.log("PC from " + legion.id + " to " + remoteID);
@@ -49,13 +49,15 @@ PeerConnection.prototype.onInitTimeout = function () {
 PeerConnection.prototype.setChannelHandlers = function () {
     var pc = this;
     this.channel.onmessage = function (event) {
-        console.log("M:" + event.data.length);
+        console.log("M1:" + event.data.length);
         var deciphered = pc.legion.secure.decipher(event.data, pc, event);
         if (!deciphered) {
             console.error("Decipher returned no value.");
         }
         if (deciphered === true)return;
         var m = JSON.parse(deciphered);
+        console.info("M2:" + deciphered.length);
+        console.info("M3:" + deciphered);
         if (!m) {
             console.error(deciphered);
             console.error(event.data);
@@ -65,27 +67,9 @@ PeerConnection.prototype.setChannelHandlers = function () {
             pc.lastKeepAlive = Date.now();
             return;
         }
-        //console.log("Got " + m.type + " from " + pc.remoteID + " s: " + m.sender);
+        //console.log("Got " + m.type + " from " + pc.remoteID + " s: " + m.s);
         var original = JSON.parse(deciphered);
-        if (m.compressed && (!m.destination || (m.destination && m.destination == pc.legion.id))) {
-            try {
-                decompress(m.compressed, function (result) {
-                    m.data = JSON.parse(result);
-                    pc.legion.messagingAPI.onMessage(pc, m, original);
-                });
-            }
-            catch (e) {
-                console.error(event);
-                console.error(deciphered);
-                console.error(m);
-                console.error(original);
-                console.error(e);
-            }
-        } else {
-            decompress("5d00000100040000000000000000331849b7e4c02e1ffffac8a000", function (result) {
-                pc.legion.messagingAPI.onMessage(pc, m, original);
-            });
-        }
+        pc.legion.messagingAPI.onMessage(pc, m, original);
     };
     this.channel.onopen = function (event) {
         clearTimeout(pc.init_timeout);
@@ -117,12 +101,12 @@ PeerConnection.prototype.cancelAll = function (notDuplicate) {
 };
 
 PeerConnection.prototype.returnOffer = function (offer) {
-    if (detailedDebug)console.log(offer);
+    if (detailedDebug) console.log(offer);
     this.peer.setRemoteDescription(new RTCSessionDescription(offer));
 };
 
 PeerConnection.prototype.return_ice = function (candidate) {
-    if (detailedDebug)console.log(candidate);
+    if (detailedDebug) console.log(candidate);
     var pc = this;
     this.peer.addIceCandidate(new RTCIceCandidate(candidate),
         function () {
@@ -153,7 +137,7 @@ PeerConnection.prototype.close = function () {
 };
 
 PeerConnection.prototype.startLocal = function () {
-    if (debug)console.log("start local: " + this.remoteID);
+    if (debug) console.log("start local: " + this.remoteID);
     var pc = this;
     this.channel = this.peer.createDataChannel('sendDataChannel', dataConstraint);
 
@@ -178,8 +162,8 @@ PeerConnection.prototype.startLocal = function () {
 
 PeerConnection.prototype.startRemote = function (offer, unique) {
     this.unique = unique;
-    if (detailedDebug)console.log(offer);
-    if (debug)console.log("start remote: " + this.remoteID);
+    if (detailedDebug) console.log(offer);
+    if (debug) console.log("start remote: " + this.remoteID);
     this.peer.setRemoteDescription(new RTCSessionDescription(offer));
     var pc = this;
     this.peer.ondatachannel =
@@ -222,7 +206,7 @@ PeerConnection.prototype.send = function (message) {
         var ciphered = this.legion.secure.cipher(message);
         if (this.channel && this.channel.readyState == "open") {
             this.channel.send(ciphered);
-            //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).sender);
+            //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).s);
         } else {
             this.close();
             console.warn("Peer has no open channel.")

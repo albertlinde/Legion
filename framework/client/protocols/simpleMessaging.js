@@ -26,18 +26,7 @@ FloodMessaging.prototype.sendTo = function (peer, message, dontSetDestination) {
             }
             this.legion.objectStore.peerSyncs.get(peer).send(message);
         } else {
-            if (message.data) {
-                compress(JSON.stringify(message.data), function (response) {
-                    message.compressed = response;
-                    delete message.data;
-                    o.legion.overlay.getPeer(peer).send(message);
-
-                }, function (error) {
-                    console.error("Compress failed!", error);
-                });
-            } else {
-                this.legion.overlay.getPeer(peer).send(message);
-            }
+            o.legion.overlay.getPeer(peer).send(message);
         }
     }
 };
@@ -50,10 +39,6 @@ FloodMessaging.prototype.sendTo = function (peer, message, dontSetDestination) {
  * @param useFanout .{boolean} Ensures sending to subset (2).
  */
 FloodMessaging.prototype.broadcastMessage = function (message, except, useFanout) {
-
-    if (message.compressed && message.data) {
-        console.error(message);
-    }
     var peers = this.legion.overlay.getPeers(this.legion.overlay.peerCount());
 
     if (message.destination) {

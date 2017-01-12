@@ -15,9 +15,11 @@ function ServerConnection(server, legion) {
     };
 
     this.socket.onmessage = function (event) {
-        console.log("MS:" + event.data.length);
+        console.log("MS1:" + event.data.length);
+        console.info("MS2:" + event.data);
+        //console.log("MS:" + event.data.length);
         var m = JSON.parse(event.data);
-        console.info("MS:" + event.data);
+        //console.info("MS:" + event.data);
 
         if (m.auth) {
             //console.log("Got " + m.auth.currentKey + ".");
@@ -26,29 +28,27 @@ function ServerConnection(server, legion) {
                 sc.legion.connectionManager.onOpenServer(sc);
             }
         } else {
-            //console.log("Got " + m.type + " from " + sc.remoteID + " s: " + m.sender);
+            //console.log("Got " + m.type + " from " + sc.remoteID + " s: " + m.s);
             var original = JSON.parse(event.data);
-            if (m.compressed && (!m.destination || (m.destination && m.destination == sc.legion.id))) {
-                decompress(m.compressed, function (result) {
-                    m.data = JSON.parse(result);
-                    sc.legion.messagingAPI.onMessage(sc, m, original);
-                });
-            } else {
-                decompress("5d00000100040000000000000000331849b7e4c02e1ffffac8a000", function (result) {
-                    sc.legion.messagingAPI.onMessage(sc, m, original);
-                });
-            }
+            sc.legion.messagingAPI.onMessage(sc, m, original);
         }
     };
 
     this.socket.onclose = function () {
-        sc.legion.connectionManager.onCloseServer(sc);
+        if (!sc.sentClose) {
+            sc.sentClose = true;
+            sc.legion.connectionManager.onCloseServer(sc);
+        }
     };
 
     this.socket.onerror = function (event) {
-        console.log("ServerSocket Error", event);
-        sc.legion.connectionManager.onCloseServer(sc);
+        console.error("WebSocket could not contact: " + sc.remoteID + ". Maybe the server is offline?");
+        if (!sc.sentClose) {
+            sc.sentClose = true;
+            sc.legion.connectionManager.onCloseServer(sc);
+        }
     };
+    this.sentClose = false;
 
 }
 
@@ -68,7 +68,7 @@ ServerConnection.prototype.send = function (message) {
         message = JSON.stringify(message);
     }
     if (this.socket.readyState == WebSocket.OPEN) {
-        //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).sender);
+        //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).s);
         this.socket.send(message);
     }
 };

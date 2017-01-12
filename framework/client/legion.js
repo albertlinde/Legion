@@ -109,7 +109,6 @@ Legion.prototype.getObjectStore = function () {
 /**
  * For generating messages that can be sent.
  * Type is required.
- * Data (optional) is compressed to save bandwidth.
  * @param type {String}
  * @param data {Object}
  * @param callback {Function}
@@ -120,42 +119,12 @@ Legion.prototype.generateMessage = function (type, data, callback) {
         s: this.id,
         ID: ++this.messageCount
     };
-    if (!data) {
-        callback(message);
-    } else {
-        var json;
-        try {
-            json = JSON.stringify(data);
 
-        } catch (e) {
-            console.error(e);
-            console.error(data);
-
-            function censor(censor) {
-                //http://stackoverflow.com/a/9653082
-                var i = 0;
-                return function (key, value) {
-                    if (i !== 0 && typeof(censor) === 'object' && typeof(value) == 'object' && censor == value)
-                        return '[Circular]';
-                    if (i >= 29) // seems to be a harded maximum of 30 serialized objects?
-                        return '[Unknown]';
-                    ++i; // so we know we aren't using the original object anymore
-                    return value;
-                }
-            }
-
-            console.log("Censoring: ", data);
-            console.log("Result: ", JSON.stringify(data, censor(data)));
-            return;
-        }
-        compress(json, function (response) {
-            message.compressed = response;
-            callback(message);
-        }, function (error) {
-            console.error("Compress failed!", error);
-            callback(null);
-        });
+    if (data) {
+        message.data = data;
     }
+
+    callback(message);
 };
 
 /**
@@ -169,18 +138,12 @@ Legion.prototype.generateMessage = function (type, data, callback) {
 Legion.prototype.reGenerateMessage = function (oldMessage, newData, callback) {
     //TODO: this seems like a hammered fix.
     if (!newData) {
-        if (oldMessage.compressed)
-            delete oldMessage.compressed;
-        callback(oldMessage);
+        if (oldMessage.data)
+            delete oldMessage.data;
     } else {
-        compress(JSON.stringify(newData), function (response) {
-            oldMessage.compressed = response;
-            callback(oldMessage);
-        }, function (error) {
-            console.error("Compress failed!", error);
-            callback(null);
-        });
+        oldMessage.data = newData;
     }
+    callback(oldMessage);
 };
 
 /**

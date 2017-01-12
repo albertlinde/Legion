@@ -21,7 +21,6 @@ var fromHexToDec = function (hex) {
 };
 
 function compress(data, callback) {
-    callback(data);return;
     if (typeof(LZMA) != "undefined") {
         LZMA.compress(data, 1, function (result) {
             var ret = "";
@@ -37,7 +36,6 @@ function compress(data, callback) {
 };
 
 function decompress(data, callback) {
-    callback(data);return;
     var to_deco = [];
     for (var j = 0; j < data.length; j += 2) {
         to_deco.push(fromHexToDec(data[j] + data[j + 1]));

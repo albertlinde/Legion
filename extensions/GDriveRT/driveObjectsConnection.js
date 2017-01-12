@@ -44,23 +44,6 @@ GDriveRTObjectsServerConnection.prototype.close = function () {
  * @param message
  */
 GDriveRTObjectsServerConnection.prototype.send = function (message) {
-    var sc = this;
-    var m = JSON.parse(message);
-    try {
-        decompress(m.compressed, function (result) {
-            m.compressed = JSON.parse(result);
-            sc.doSend(m);
-        });
-    }
-    catch (e) {
-        console.error(event);
-        console.error(m);
-        console.error(original);
-        console.error(e);
-    }
-};
-
-GDriveRTObjectsServerConnection.prototype.doSend = function (message) {
     switch (message.type) {
         case (this.objectStore.handlers.peerSync.type):
             this.onSendPeerSync();
@@ -298,7 +281,7 @@ GDriveRTObjectsServerConnection.prototype.driveListHasOP = function (oid, list, 
 };
 
 GDriveRTObjectsServerConnection.prototype.onServerContentFromNetwork = function (message) {
-    var objects = message.compressed;
+    var objects = message.data;
     for (var i = 0; i < objects.length; i++) {
         var objectID = objects[i].objectID;
         if (!objectID) {

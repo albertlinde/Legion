@@ -21,29 +21,29 @@ function ObjectServerConnection(server, objectStore, legion) {
     };
 
     this.socket.onmessage = function (event) {
-        console.log("MO:" + event.data.length);
+        console.log("MO1:" + event.data.length);
+        console.info("MO2:" + event.data);
         var m = JSON.parse(event.data);
-        console.info("MO:" + event.data);
-        //console.log("Got " + m.type + " from " + sc.remoteID + " s: " + m.sender);
+        //console.log("Got " + m.type + " from " + sc.remoteID + " s: " + m.s);
         var original = JSON.parse(event.data);
-        if (m.compressed) {
-            decompress(m.compressed, function (result) {
-                m.data = JSON.parse(result);
-                sc.objectStore.onMessageFromServer(m, original, sc);
-            });
-        } else {
-            sc.objectStore.onMessageFromServer(m, original, sc);
-        }
+        sc.objectStore.onMessageFromServer(m, original, sc);
     };
 
     this.socket.onclose = function () {
-        sc.legion.connectionManager.onCloseServer(sc);
+        if (!sc.sentClose) {
+            sc.sentClose = true;
+            sc.legion.connectionManager.onCloseServer(sc);
+        }
     };
 
     this.socket.onerror = function (event) {
-        console.log("ServerSocket Error", event);
-        sc.legion.connectionManager.onCloseServer(sc);
+        console.error("WebSocket could not contact: " + sc.remoteID + ". Maybe the server is offline?");
+        if (!sc.sentClose) {
+            sc.sentClose = true;
+            sc.legion.connectionManager.onCloseServer(sc);
+        }
     };
+    this.sentClose = false;
 
 }
 
@@ -57,7 +57,7 @@ ObjectServerConnection.prototype.send = function (message) {
         message = JSON.stringify(message);
     }
     if (this.socket.readyState == WebSocket.OPEN) {
-        //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).sender);
+        //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).s);
         this.socket.send(message);
     }
 };
