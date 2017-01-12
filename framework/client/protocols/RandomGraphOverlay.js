@@ -110,7 +110,7 @@ RandomGraphOverlay.prototype.init = function (contact_node) {
 };
 
 RandomGraphOverlay.prototype.onJoinRequest = function (message, original, connection) {
-    if (this.overlay.peers.contains(message.sender)) {
+    if (this.overlay.peers.contains(message.s)) {
         message.TTL--;
         if (message.N > 0 && message.TTL > 0) {
             this.legion.messagingAPI.propagateToN(message);
@@ -132,7 +132,7 @@ RandomGraphOverlay.prototype.onJoinRequest = function (message, original, connec
         if (connected) {
             var bo = this;
             this.legion.generateMessage("JoinAnswer", null, function (result) {
-                result.destination = message.sender;
+                result.destination = message.s;
                 if (connection.isAlive())
                     connection.send(result);
                 else {
@@ -151,10 +151,10 @@ RandomGraphOverlay.prototype.onJoinRequest = function (message, original, connec
 };
 
 RandomGraphOverlay.prototype.onJoinAnswer = function (message, original, connection) {
-    if (this.overlay.peers.contains(message.sender)) {
+    if (this.overlay.peers.contains(message.s)) {
         //No op.
     } else {
-        this.legion.connectionManager.connectPeer(message.sender);
+        this.legion.connectionManager.connectPeer(message.s);
     }
 };
 

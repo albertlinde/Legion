@@ -15,17 +15,19 @@ function MessagingAPI(legion) {
  * @param original {Object}
  */
 MessagingAPI.prototype.onMessage = function (connection, message, original) {
+    console.info(original);
     if (message.type != this.legion.bullyProtocol.handlers.bully.type) {
-        if (!this.duplicates.contains(message.sender, message.ID)) {
-            this.duplicates.add(message.sender, message.ID)
+        if (!this.duplicates.contains(message.s, message.ID)) {
+            this.duplicates.add(message.s, message.ID)
         } else {
-            //console.log("Duplicate: (" + message.sender + "," + message.ID + ")");
+            //console.log("Duplicate: (" + message.s + "," + message.ID + ")");
             return;
         }
     }
-
-    console.log(message.type + " from " + connection.remoteID + " by " + message.sender + " to " + message.destination);
-
+    if (message.destination)
+        console.log(message.type + " from " + connection.remoteID + " by " + message.s + " to " + message.destination + ".");
+    else
+        console.log(message.type + " from " + connection.remoteID + " by " + message.s + ".");
     if (!message.destination || (message.destination && message.destination == this.legion.id)) {
         this.deliver(message, original, connection);
     } else {
@@ -58,7 +60,6 @@ MessagingAPI.prototype.deliver = function (message, original, connection) {
  * @param except
  */
 MessagingAPI.prototype.broadcastMessage = function (message, except) {
-
     if (message.compressed && message.data) {
         console.error(message);
     }
@@ -126,14 +127,14 @@ MessagingAPI.prototype.propagateToN = function (message, toServerIfBully) {
     messageSecondSet.N = secondSet;
 
     for (var i = 0; i < firstSetAmount; i++) {
-        if (peers[i].remoteID != message.sender) {
+        if (peers[i].remoteID != message.s) {
             peers[i].send(messageFirstSet);
         } else {
             toServer++;
         }
     }
     for (var i = firstSetAmount; i < peers.length; i++) {
-        if (peers[i].remoteID != message.sender) {
+        if (peers[i].remoteID != message.s) {
             peers[i].send(messageSecondSet);
         } else {
             toServer++;
@@ -159,7 +160,7 @@ MessagingAPI.prototype.broadcast = function (type, data) {
     //TODO: a way to internally sign messages would be nice
     this.legion.generateMessage(type, data, function (result) {
         mapi.broadcastMessage(result);
-        mapi.deliver(result);
+        mapi.deliver({type: type, data: data});
     });
 };
 

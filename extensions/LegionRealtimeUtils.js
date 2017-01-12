@@ -621,7 +621,7 @@ LegionRealtimeUtils.prototype.createObjectsFile = function (callback) {
                 var list = model.createList();
                 model.getRoot().set("RootMap", list);
 
-                var delta = rootMap.getDelta([], {added: [], removed: []});
+                var delta = rootMap.getDelta([], {a: [], r: []});
                 var meta = rootMap.getMeta();
                 var vv = rootMap.versionVector.toJSONString();
                 var flattened = {delta: delta, vv: vv, meta: meta};
@@ -640,7 +640,7 @@ LegionRealtimeUtils.prototype.createObjectsFile = function (callback) {
                         var list = model.createList();
                         model.getRoot().set(key, list);
 
-                        var delta = crdt.getDelta([], {added: [], removed: []});
+                        var delta = crdt.getDelta([], {a: [], r: []});
                         var meta = crdt.getMeta();
                         var vv = crdt.versionVector.toJSONString();
                         var flattened = {delta: delta, vv: vv, meta: meta};

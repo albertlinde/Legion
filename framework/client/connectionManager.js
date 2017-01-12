@@ -50,7 +50,7 @@ ConnectionManager.prototype.connectPeer = function (peerID) {
 //if it had the peer, the winning started is te one with lowest id.
 ConnectionManager.prototype.connectPeerRemote = function (message) {
     //TODO: decision is based by id. is this the best way?
-    var peerID = message.sender;
+    var peerID = message.s;
     var offer = message.data;
     var hadPeer = this.peerConnections.get(peerID);
     if (hadPeer) {
@@ -78,8 +78,8 @@ ConnectionManager.prototype.handleSignalling = function (message, original) {
             this.connectPeerRemote(message);
         } else {
             var unique = message.unique;
-            if (this.peerConnections.contains(message.sender)) {
-                var pc = this.peerConnections.get(message.sender);
+            if (this.peerConnections.contains(message.s)) {
+                var pc = this.peerConnections.get(message.s);
                 if (pc.unique != unique) {
                     console.warn("Got as unique", unique, "when expecting", pc.unique);
                 } else {
@@ -93,7 +93,7 @@ ConnectionManager.prototype.handleSignalling = function (message, original) {
                     }
                 }
             } else {
-                console.warn("Got", message.type, "for no peer", message.sender, this.legion.id);
+                console.warn("Got", message.type, "for no peer", message.s, this.legion.id);
             }
         }
     }

@@ -94,8 +94,8 @@ function extractMetaFrom(rootMapOps, type, returnAsMaps) {
                     removed.set(m[0], Math.max(m[1], removed.get(m[0])));
                 }
             } else {
-                var replica = rootMapOps[i].operationID.replicaID;
-                var opNum = rootMapOps[i].operationID.operationCount;
+                var replica = rootMapOps[i].opID.rID;
+                var opNum = rootMapOps[i].opID.oC;
                 var key = rootMapOps[i].key;
                 if (key == "set") {
                     if (added.get(replica))
@@ -145,7 +145,7 @@ GDriveRTObjectsServerConnection.prototype.onSendPeerSync = function () {
     for (var o = 0; o < rootMapOps.length; o++) {
         var op = rootMapOps[o];
         console.info(op);
-        if (op.operationID) {
+        if (op.opID) {
             localRootMap.deltaOperationFromNetwork(op, op, this);
         } else if (op.delta) {
             localRootMap.deltaFromNetwork(op, this);
@@ -198,7 +198,7 @@ GDriveRTObjectsServerConnection.prototype.onSendPeerSync = function () {
 
                     for (var o = 0; o < objectListAsArray.length; o++) {
                         var op = objectListAsArray[o];
-                        if (op.operationID) {
+                        if (op.opID) {
                             localObject.deltaOperationFromNetwork(op, op, this);
                         } else if (op.delta) {
                             localObject.deltaFromNetwork(op, this);
@@ -236,7 +236,7 @@ GDriveRTObjectsServerConnection.prototype.operationsFromDocument = function (obj
     var crdt = this.objectStore.crdts.get(objectKey);
     for (var i = 0; i < operations.length; i++) {
         var op = operations[i];
-        if (op.operationID) {
+        if (op.opID) {
             crdt.deltaOperationFromNetwork(op, op, this);
         } else if (op.delta) {
             crdt.deltaFromNetwork(op, this);
@@ -258,11 +258,11 @@ GDriveRTObjectsServerConnection.prototype.driveListHasOP = function (oid, list, 
     var rootMetas = extractMetaFrom(list, "Map", true);
     var added = rootMetas[0];
     var removed = rootMetas[1];
-    if (opOrDelta.operationID) {
+    if (opOrDelta.opID) {
         if (opOrDelta.key == "set") {
-            return added.get(opOrDelta.operationID.replicaID) && (added.get(opOrDelta.operationID.replicaID) >= opOrDelta.operationID.operationCount)
+            return added.get(opOrDelta.opID.rID) && (added.get(opOrDelta.opID.rID) >= opOrDelta.opID.oC)
         } else if (opOrDelta.key == "delete") {
-            return removed.get(opOrDelta.operationID.replicaID) && (removed.get(opOrDelta.operationID.replicaID) >= opOrDelta.operationID.operationCount)
+            return removed.get(opOrDelta.opID.rID) && (removed.get(opOrDelta.opID.rID) >= opOrDelta.opID.oC)
         } else {
             console.error("No key for this.", oid, list, opOrDelta, rootMetas);
         }
@@ -310,15 +310,14 @@ GDriveRTObjectsServerConnection.prototype.onServerContentFromNetwork = function 
                     console.log("Adding FD to drive list.");
                     objectList.insert(objectList.length, objects[i].flattenedDelta);
                 }
-            } else if (objects[i].operationID) {
+            } else if (objects[i].opID) {
                 var arr = objectList.asArray();
                 if (!this.driveListHasOP(objectID, arr, objects[i])) {
                     console.log("Adding OP to drive list: " + arr.length);
                     var queuedOP = {
                         objectID: objectID,
-                        operationID: objects[i].operationID,
-                        remoteArguments: objects[i].remoteArguments,
-                        versionVector: objects[i].versionVector,
+                        opID: objects[i].opID,
+                        arg: objects[i].remoteArguments,
                         key: objects[i].key
                     };
                     objectList.insert(objectList.length, queuedOP);

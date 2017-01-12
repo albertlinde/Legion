@@ -54,7 +54,7 @@ ServerMessaging.prototype.broadcastMessage = function (message, except) {
 
     var peers = this.peerSyncs.keys();
     for (var i = 0; i < peers.length; i++) {
-        if (peers[i] == message.sender)
+        if (peers[i] == message.s)
             continue;
         var send = true;
         if (except)

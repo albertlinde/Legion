@@ -5,7 +5,7 @@ function SimpleBully(legion) {
         bully: {
             type: "Bully",
             callback: function (message, connection) {
-                var hisID = (message.sender).toString();
+                var hisID = (message.s).toString();
                 var time = Date.now();
                 if (hisID <= sb.bully) {
                     sb.bully = hisID;

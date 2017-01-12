@@ -117,7 +117,7 @@ Legion.prototype.getObjectStore = function () {
 Legion.prototype.generateMessage = function (type, data, callback) {
     var message = {
         type: type,
-        sender: this.id,
+        s: this.id,
         ID: ++this.messageCount
     };
     if (!data) {

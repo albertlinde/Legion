@@ -71,11 +71,11 @@ CliquesOverlay.prototype.floodJoin = function () {
 };
 
 CliquesOverlay.prototype.handleJoin = function (message, original, connection) {
-    if (!this.legion.connectionManager.hasPeer(message.sender)) {
-        this.legion.connectionManager.connectPeer(message.sender);
+    if (!this.legion.connectionManager.hasPeer(message.s)) {
+        this.legion.connectionManager.connectPeer(message.s);
     }
 
-    if (connection instanceof PeerConnection && connection.remoteID == message.sender) {
+    if (connection instanceof PeerConnection && connection.remoteID == message.s) {
         this.legion.messagingAPI.broadcastMessage(original, [connection]);
     }
 };

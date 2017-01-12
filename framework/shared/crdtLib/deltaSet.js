@@ -8,7 +8,7 @@ if (typeof exports != "undefined") {
 //TODO: 1:when removing elements remove them from the <adds> Map. 2: deltas ignore unfound adds(they were removed).
 
 var delta_set = {
-    type: "DELTA_Set",
+    type: "S",
     crdt: {
         base_value: {
             state: {
@@ -25,6 +25,17 @@ var delta_set = {
             return this.state.elements.keys();
         },
         operations: {
+            size: {
+                local: function () {
+                    return {
+                        toInterface: this.state.elements.size(),
+                        toNetwork: null
+                    };
+                },
+                remote: function (data) {
+                    //Never called.
+                }
+            },
             contains: {
                 local: function (element) {
                     var toInterface = false;
@@ -57,8 +68,8 @@ var delta_set = {
                         return {
                             toInterface: null,
                             toNetwork: {
-                                element: element,
-                                id: metadata.replicaID,
+                                e: element,
+                                id: metadata.rID,
                                 op: ++this.state.newElements
                             }
                         };
@@ -72,10 +83,10 @@ var delta_set = {
                     }
                 }, remote: function (data) {
                     var added = false;
-                    var pairs = this.state.elements.get(data.element);
+                    var pairs = this.state.elements.get(data.e);
                     if (!pairs) {
                         pairs = new ALMap();
-                        this.state.elements.set(data.element, pairs);
+                        this.state.elements.set(data.e, pairs);
                         added = true;
                     }
 
@@ -84,12 +95,12 @@ var delta_set = {
                     if (!this.state.adds.contains(data.id)) {
                         this.state.adds.set(data.id, new ALMap());
                     }
-                    this.state.adds.get(data.id).set(data.op, data.element);
+                    this.state.adds.get(data.id).set(data.op, data.e);
 
                     this.state.added.set(data.id, data.op);
 
                     if (added)
-                        return {added: data.element};
+                        return {added: data.e};
                     else
                         return null;
                 }
@@ -107,18 +118,18 @@ var delta_set = {
                         return {
                             toInterface: null,
                             toNetwork: {
-                                element: element,
-                                pairs: pairs.toArray(),
-                                id: metadata.replicaID,
+                                e: element,
+                                p: pairs.toArray(),
+                                id: metadata.rID,
                                 op: ++this.state.oldElements
                             }
                         };
                     }
                 }, remote: function (data) {
                     var removed = false;
-                    var pairs = this.state.elements.get(data.element);
+                    var pairs = this.state.elements.get(data.e);
                     if (pairs) {
-                        var receivedRemoves = data.pairs;
+                        var receivedRemoves = data.p;
                         for (var i = 0; i < receivedRemoves.length; i++) {
                             var k = receivedRemoves[i][0];
                             var v = receivedRemoves[i][1];
@@ -127,7 +138,7 @@ var delta_set = {
                             }
                         }
                         if (pairs.size() == 0) {
-                            this.state.elements.delete(data.element);
+                            this.state.elements.delete(data.e);
                             removed = true;
                         }
                     }
@@ -136,11 +147,11 @@ var delta_set = {
                     if (!this.state.removes.contains(data.id)) {
                         this.state.removes.set(data.id, new ALMap());
                     }
-                    this.state.removes.get(data.id).set(data.op, [data.element, data.pairs]);
+                    this.state.removes.get(data.id).set(data.op, [data.e, data.p]);
                     this.state.removed.set(data.id, data.op);
 
                     if (removed)
-                        return {removed: data.element};
+                        return {removed: data.e};
                     else
                         return null;
                 }
@@ -149,17 +160,17 @@ var delta_set = {
         getDelta: function (vv, meta) {
             console.info("START getDelta Set");
             console.info(meta);
-            var ret = {adds: [], removes: []};
+            var ret = {a: [], r: []};
 
-            var hisAdds = meta.added;
-            var hisRemoves = meta.removed;
+            var hisAdds = meta.a;
+            var hisRemoves = meta.r;
 
-            for (var i = 0; i < hisAdds.length; i++) {
+            for (var i = 0; i < hisAdds && hisAdds.length; i++) {
                 var k = hisAdds[i][0];
                 var v = hisAdds[i][1];
                 if (this.state.added.get(k) > v) {
                     for (var ai = v + 1; ai <= this.state.added.get(k); ai++) {
-                        ret.adds.push([k, ai, this.state.adds.get(k).get(ai)]);
+                        ret.a.push([k, ai, this.state.adds.get(k).get(ai)]);
                     }
                 }
             }
@@ -167,7 +178,7 @@ var delta_set = {
             var myAdds = this.state.added.keys();
             for (var j = 0; j < myAdds.length; j++) {
                 var found = false;
-                for (var i = 0; i < hisAdds.length; i++) {
+                for (var i = 0; hisAdds && i < hisAdds.length; i++) {
                     if (myAdds[j] == hisAdds[i][0]) {
                         found = true;
                         break;
@@ -175,43 +186,44 @@ var delta_set = {
                 }
                 if (!found) {
                     for (var ai = 1; ai <= this.state.added.get(myAdds[j]); ai++) {
-                        ret.adds.push([myAdds[j], ai, this.state.adds.get(myAdds[j]).get(ai)]);
+                        ret.a.push([myAdds[j], ai, this.state.adds.get(myAdds[j]).get(ai)]);
                     }
                 }
             }
 
 
-            for (var j = 0; j < hisRemoves.length; j++) {
+            for (var j = 0; j < hisRemoves && hisRemoves.length; j++) {
                 var k = hisRemoves[j][0];
                 var v = hisRemoves[j][1];
                 if (this.state.removed.get(k) > v) {
                     for (var ri = v + 1; ri <= this.state.removed.get(k); ri++) {
-                        ret.removes.push([k, ri, this.state.removes.get(k).get(ri)]);
+                        ret.r.push([k, ri, this.state.removes.get(k).get(ri)]);
                     }
                 }
             }
 
             var myRemoves = this.state.removed.keys();
             for (var j = 0; j < myRemoves.length; j++) {
+                console.info(myRemoves[j], found, this.state.removed.get(myRemoves[j]));
                 var found = false;
-                for (var i = 0; i < hisRemoves.length; i++) {
+                for (var i = 0; hisRemoves && i < hisRemoves.length; i++) {
                     if (myRemoves[j] == hisRemoves[i][0]) {
                         found = true;
                         break;
                     }
                 }
+                console.info(myRemoves[j], found, this.state.removed.get(myRemoves[j]));
                 if (!found) {
                     for (var ai = 1; ai <= this.state.removed.get(myRemoves[j]); ai++) {
-                        ret.removes.push([myRemoves[j], ai, this.state.removes.get(myRemoves[j]).get(ai)]);
+                        ret.r.push([myRemoves[j], ai, this.state.removes.get(myRemoves[j]).get(ai)]);
                     }
                 }
             }
 
-
             console.info(ret);
             console.info("END getDelta Set");
 
-            if (ret.removes.length > 0 || ret.adds.length > 0) {
+            if (ret.r.length > 0 || ret.a.length > 0) {
                 return ret;
             } else {
                 return null;
@@ -219,74 +231,79 @@ var delta_set = {
 
         },
         applyDelta: function (delta, vv, meta) {
-            console.info("Start APPLY Set")
-            console.info(delta)
-            var has = false;
-            var change = {added: [], removed: []};
-            for (var a = 0; a < delta.adds.length; a++) {
-                var replicaID = delta.adds[a][0];
-                var operationID = delta.adds[a][1];
-                var element = delta.adds[a][2];
+            try {
+                console.info("Start APPLY Set")
+                console.info(delta)
+                var has = false;
+                var change = {added: [], removed: []};
+                for (var a = 0; a < delta.a.length; a++) {
+                    var rID = delta.a[a][0];
+                    var opID = delta.a[a][1];
+                    var element = delta.a[a][2];
 
-
-                if (this.state.adds.get(replicaID) && this.state.adds.get(replicaID).get(operationID)) {
-                    console.info("Already had op.");
-                    delta.adds = delta.adds.slice(0, a).concat(delta.adds.slice(a + 1, delta.adds.length));
-                } else {
-                    console.info("New op.");
-                    has = true;
-                    var pairs = this.state.elements.get(element);
-                    if (!pairs) {
-                        pairs = new ALMap();
-                        this.state.elements.set(element, pairs);
-                        change.added.push(element);
+                    if (this.state.adds.get(rID) && this.state.adds.get(rID).get(opID)) {
+                        console.info("Already had op.");
+                        delta.a = delta.a.slice(0, a).concat(delta.a.slice(a + 1, delta.a.length));
+                    } else {
+                        console.info("New op.");
+                        has = true;
+                        var pairs = this.state.elements.get(element);
+                        if (!pairs) {
+                            pairs = new ALMap();
+                            this.state.elements.set(element, pairs);
+                            change.added.push(element);
+                        }
+                        pairs.set(rID, opID);
+                        if (!this.state.adds.contains(rID)) {
+                            this.state.adds.set(rID, new ALMap());
+                        }
+                        this.state.adds.get(rID).set(opID, element);
+                        this.state.added.set(rID, opID);
                     }
-                    pairs.set(replicaID, operationID);
-                    if (!this.state.adds.contains(replicaID)) {
-                        this.state.adds.set(replicaID, new ALMap());
-                    }
-                    this.state.adds.get(replicaID).set(operationID, element);
-                    this.state.added.set(replicaID, operationID);
                 }
-            }
-            for (var r = 0; r < delta.removes.length; r++) {
-                var rReplicaID = delta.removes[r][0];
-                var rOperationID = delta.removes[r][1];
-                var rElement = delta.removes[r][2][0];
-                var rPairs = delta.removes[r][2][1];
+                for (var r = 0; r < delta.r.length; r++) {
+                    var rReplicaID = delta.r[r][0];
+                    var rOperationID = delta.r[r][1];
+                    var rElement = delta.r[r][2][0];
+                    var rPairs = delta.r[r][2][1];
 
-                if (this.state.removes.get(rReplicaID) && this.state.removes.get(rReplicaID).get(rOperationID)) {
-                    delta.removes = delta.removes.slice(0, r).concat(delta.removes.slice(r + 1, delta.removes.length));
-                } else {
-                    has = true;
-                    var pairs = this.state.elements.get(rElement);
-                    if (pairs) {
-                        for (var i = 0; i < rPairs.length; i++) {
-                            var k = rPairs[i][0];
-                            var v = rPairs[i][1];
-                            if (pairs.get(k) <= v) {
-                                pairs.delete(k);
+                    if (this.state.removes.get(rReplicaID) && this.state.removes.get(rReplicaID).get(rOperationID)) {
+                        delta.r = delta.r.slice(0, r).concat(delta.r.slice(r + 1, delta.r.length));
+                    } else {
+                        has = true;
+                        var pairs = this.state.elements.get(rElement);
+                        if (pairs) {
+                            for (var i = 0; i < rPairs.length; i++) {
+                                var k = rPairs[i][0];
+                                var v = rPairs[i][1];
+                                if (pairs.get(k) <= v) {
+                                    pairs.delete(k);
+                                }
+                            }
+                            if (pairs.size() == 0) {
+                                this.state.elements.delete(rElement);
+                                change.removed.push(rElement);
                             }
                         }
-                        if (pairs.size() == 0) {
-                            this.state.elements.delete(rElement);
-                            change.removed.push(rElement);
+                        if (!this.state.removes.contains(rReplicaID)) {
+                            this.state.removes.set(rReplicaID, new ALMap());
                         }
+                        this.state.removes.get(rReplicaID).set(rOperationID, [rElement, rPairs]);
+                        this.state.removed.set(rReplicaID, rOperationID);
                     }
-                    if (!this.state.removes.contains(replicaID)) {
-                        this.state.removes.set(replicaID, new ALMap());
-                    }
-                    this.state.removes.get(replicaID).set(rOperationID, [rElement, rPairs]);
-                    this.state.removed.set(replicaID, rOperationID);
                 }
+                if (change.removed.length == 0) {
+                    delete change.removed;
+                }
+                if (change.added.length == 0) {
+                    delete change.added;
+                }
+            } catch (e) {
+                console.error(delta);
+                console.error(vv);
+                console.error(meta);
+                console.error(e);
             }
-            if (change.removed.length == 0) {
-                delete change.removed;
-            }
-            if (change.added.length == 0) {
-                delete change.added;
-            }
-
 
             console.info(has)
             console.info(change)
@@ -301,7 +318,7 @@ var delta_set = {
 
         },
         getMeta: function () {
-            return {added: this.state.added.toArray(), removed: this.state.removed.toArray()}
+            return {a: this.state.added.toArray(), r: this.state.removed.toArray()}
         }
     }
 };

@@ -9,7 +9,7 @@ FloodMessaging.prototype.onMessage = function (connection, message, original) {
             this.broadcastMessage(original, [connection]);
         else {
             if (debug)
-                console.log("Not broadcasting: " + message.type, this.legion.id, message.sender)
+                console.log("Not broadcasting: " + message.type, this.legion.id, message.s)
         }
     }
 };
@@ -73,7 +73,7 @@ FloodMessaging.prototype.broadcastMessage = function (message, except, useFanout
     }
     var sent = 0;
     for (var i = 0; sent < max && i < peers.length; i++) {
-        if (peers[i].remoteID == message.sender)
+        if (peers[i].remoteID == message.s)
             continue;
         var send = true;
         for (var j = 0; send && except && j < except.length; j++)

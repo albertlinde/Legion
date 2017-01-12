@@ -1,3 +1,8 @@
+//var operationID = {replicaID: c.objectStore.legion.id, operationCount: ++c.localOP};
+//has been changed to
+//var opID = {rID: c.objectStore.legion.id, oC: ++c.localOP};
+
+
 if (typeof exports != "undefined") {
     CRDT_Database = true;
     exports.CRDT = CRDT;
@@ -62,23 +67,23 @@ function CRDT(objectID, crdt, objectStore) {
             c.remotes[key] = c.crdt.crdt.operations[key].remote;
 
             c[key] = function () {
-                var operationID = {replicaID: c.objectStore.legion.id, operationCount: ++c.localOP};
+                var opID = {rID: c.objectStore.legion.id, oC: ++c.localOP};
                 var args = [];
                 for (var arg_i = 0; arg_i < arguments.length; arg_i++) {
                     args.push(arguments[arg_i]);
                 }
-                args.push(operationID);
+                args.push(opID);
 
                 var ret = c.locals[key].apply(c, args);
 
                 if (ret.toNetwork) {
 
                     var remote_ret = c.remotes[key].apply(c, [ret.toNetwork]);
-                    c.objectStore.propagate(c.objectID, operationID, ret.toNetwork, c.versionVector.toJSONString(), key, undefined, c.crdt.type);
+                    c.objectStore.propagate(c.objectID, opID, ret.toNetwork, c.versionVector.toJSONString(), key, undefined, c.crdt.type);
 
                     //console.info(c.versionVector.toJSONString());
 
-                    c.addOpToCurrentVersionVector(operationID);
+                    c.addOpToCurrentVersionVector(opID);
 
                     //console.info(c.versionVector.toJSONString());
 
@@ -109,8 +114,8 @@ function CRDT(objectID, crdt, objectStore) {
     this.callback = null;
 }
 
-CRDT.prototype.addOpToCurrentVersionVector = function (operationID) {
-    this.versionVector.set(operationID.replicaID, operationID.operationCount);
+CRDT.prototype.addOpToCurrentVersionVector = function (opID) {
+    this.versionVector.set(opID.rID, opID.oC);
 };
 
 /**
@@ -130,9 +135,9 @@ CRDT.prototype.setOnStateChange = function (callback) {
 };
 
 CRDT.prototype.deltaOperationFromNetwork = function (deltaOperation, original, connection) {
-    var remote_ret = this.remotes[deltaOperation.key].apply(this, [deltaOperation.remoteArguments]);
-    this.addOpToCurrentVersionVector(deltaOperation.operationID);
-    this.objectStore.propagate(this.objectID, deltaOperation.operationID, deltaOperation.remoteArguments, deltaOperation.versionVector, deltaOperation.key, connection, this.crdt.type);
+    var remote_ret = this.remotes[deltaOperation.key].apply(this, [deltaOperation.arg]);
+    this.addOpToCurrentVersionVector(deltaOperation.opID);
+    this.objectStore.propagate(this.objectID, deltaOperation.opID, deltaOperation.arg, deltaOperation.versionVector, deltaOperation.key, connection, this.crdt.type);
     if (this.callback && remote_ret) {
         this.callback(remote_ret, {local: false});
     }
@@ -152,9 +157,9 @@ CRDT.prototype.deltaFromNetwork = function (delta, connection) {
 
         var flattened = {delta: applied.flattened.delta, vv: applied.flattened.vv, meta: applied.flattened.meta};
         this.objectStore.propagateFlattenedDelta(this.objectID, flattened, connection, this.crdt.type);
-        if (this.callback && applied.change) {
-            this.callback(applied.change, {local: false});
-        }
+    }
+    if (this.callback && applied.change) {
+        this.callback(applied.change, {local: false});
     }
 };
 

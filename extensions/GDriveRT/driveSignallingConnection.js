@@ -191,7 +191,7 @@ GDriveRTSignallingServerConnection.prototype.gotSomethingtoSend = function (mess
         default:
 
             if (message.destination) {
-                if (message.sender != this.legion.id) {
+                if (message.s != this.legion.id) {
                     return;
                 }
                 var peerMessageList = this.map.get(message.destination);

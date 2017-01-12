@@ -132,11 +132,11 @@ function initService() {
 
                 socket.on('message', function incoming(message) {
                     var parsed = JSON.parse(message);
-                    console.log("Got " + parsed.type + " from " + socket.remoteID + " s: " + parsed.sender);
+                    console.log("Got " + parsed.type + " from " + socket.remoteID + " s: " + parsed.s);
 
 
-                    if (!duplicates.contains(parsed.sender, parsed.ID)) {
-                        duplicates.add(parsed.sender, parsed.ID);
+                    if (!duplicates.contains(parsed.s, parsed.ID)) {
+                        duplicates.add(parsed.s, parsed.ID);
                         var original = JSON.parse(message);
 
                         var cb = function (parsed) {

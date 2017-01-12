@@ -110,16 +110,15 @@ CRDT_Database.prototype.saveToDisk = function () {
  * @param objectID {String}
  * @param operationID {Object}
  * @param remoteArguments {Object}
- * @param versionVector {Array}
+ * @param versionVector {Array}  UNUSED!
  * @param key {String}
  * @param fromConnection
  */
 CRDT_Database.prototype.propagate = function (objectID, operationID, remoteArguments, versionVector, key, fromConnection, type) {
     var queuedOP = {
         objectID: objectID,
-        operationID: operationID,
-        remoteArguments: remoteArguments,
-        versionVector: versionVector,
+        opID: operationID,
+        arg: remoteArguments,
         key: key,
         fromConnection: fromConnection,
         type: type
@@ -185,9 +184,9 @@ CRDT_Database.prototype.gotContentFromNetwork = function (message, original, con
         if (!crdt)
             crdt = this.getOrCreate(objectID, message.data[i].type);
         if (crdt) {
-            if (message.data[i].operationID) {
-                if (crdt.versionVector.contains(message.data[i].operationID.replicaID)) {
-                    if (crdt.versionVector.get(message.data[i].operationID.replicaID) >= message.data[i].operationID.operationCount)
+            if (message.data[i].opID) {
+                if (crdt.versionVector.contains(message.data[i].opID.rID)) {
+                    if (crdt.versionVector.get(message.data[i].opID.rID) >= message.data[i].opID.oC)
                         continue;
                 }
                 crdt.deltaOperationFromNetwork(message.data[i], original, connection);
@@ -208,7 +207,7 @@ CRDT_Database.prototype.generateMessage = function (type, data, callback) {
     }
     var message = {
         type: type,
-        sender: this.id,
+        s: this.id,
         ID: ++this.messageCount
     };
     if (!data) {

@@ -18,7 +18,7 @@ function ObjectStore(legion) {
     this.handlers = {
         peerSync: {
             type: "OS:PS", callback: function (message) {
-                var ps = os.peerSyncs.get(message.sender);
+                var ps = os.peerSyncs.get(message.s);
                 if (!ps) {
                     console.error("Got OS:PS for unknown peer.");
                 } else {
@@ -28,7 +28,7 @@ function ObjectStore(legion) {
         },
         peerSyncAnswer: {
             type: "OS:PSA", callback: function (message) {
-                var ps = os.peerSyncs.get(message.sender);
+                var ps = os.peerSyncs.get(message.s);
                 if (!ps) {
                     console.error("Got OS:PSA for unknown peer.");
                 } else {
@@ -116,25 +116,12 @@ ObjectStore.prototype.gotContentFromNetwork = function (message, original, conne
         if (!crdt)
             crdt = this.getOrCreate(objectID, message.data[i].type);
         if (crdt) {
-
-            /**
-             *
-             objectID: objectID,
-             operationID: {replicaID, operationCount},
-             remoteArguments: remoteArguments,
-             versionVector: versionVector,
-             key: key
-             */
-            //OR
-            /**
-             objectID: objectID,
-             flattenedDelta: flattenedDelta,
-             fromConnection: fromConnection
-             */
-
-            if (message.data[i].operationID) {
-                if (crdt.versionVector.contains(message.data[i].operationID.replicaID)) {
-                    if (crdt.versionVector.get(message.data[i].operationID.replicaID) >= message.data[i].operationID.operationCount)
+            //objectID: objectID,opID: {rID, oC},remoteArguments: remoteArguments,versionVector: versionVector,key: key
+            //or
+            //objectID: objectID, flattenedDelta: flattenedDelta, fromConnection: fromConnection
+            if (message.data[i].opID) {
+                if (crdt.versionVector.contains(message.data[i].opID.rID)) {
+                    if (crdt.versionVector.get(message.data[i].opID.rID) >= message.data[i].opID.oC)
                         continue;
                 }
                 crdt.deltaOperationFromNetwork(message.data[i], original, connection);
@@ -301,18 +288,17 @@ ObjectStore.prototype.get = function (objectID) {
 /**
  *
  * @param objectID {String}
- * @param operationID {Object}
+ * @param opID {Object}
  * @param remoteArguments {Object}
- * @param versionVector {Array}
+ * @param versionVector {Array} UNUSED!
  * @param key {String}
  * @param fromConnection
  */
-ObjectStore.prototype.propagate = function (objectID, operationID, remoteArguments, versionVector, key, fromConnection, type) {
+ObjectStore.prototype.propagate = function (objectID, opID, remoteArguments, versionVector, key, fromConnection, type) {
     var queuedOP = {
         objectID: objectID,
-        operationID: operationID,
-        remoteArguments: remoteArguments,
-        versionVector: versionVector,
+        opID: opID,
+        arg: remoteArguments,
         key: key,
         fromConnection: fromConnection,
         type: type
@@ -322,9 +308,8 @@ ObjectStore.prototype.propagate = function (objectID, operationID, remoteArgumen
     if (this.objectServer) {
         queuedOP = {
             objectID: objectID,
-            operationID: operationID,
-            remoteArguments: remoteArguments,
-            versionVector: versionVector,
+            opID: opID,
+            arg: remoteArguments,
             key: key,
             fromConnection: fromConnection,
             type: type

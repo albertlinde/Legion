@@ -6,7 +6,7 @@ if (typeof exports != "undefined") {
 }
 
 var delta_counter = {
-    type: "DELTA_Counter",
+    type: "C",
     crdt: {
         base_value: {
             state: {dec: ALMap, inc: ALMap}
@@ -31,7 +31,7 @@ var delta_counter = {
                     }
                     return {
                         toInterface: null,
-                        toNetwork: {id: metadata.replicaID, amount: amount}
+                        toNetwork: {id: metadata.rID, amount: amount}
                     };
                 }, remote: function (data) {
                     if (!this.state.inc.contains(data.id))
@@ -47,7 +47,7 @@ var delta_counter = {
                     }
                     return {
                         toInterface: null,
-                        toNetwork: {id: metadata.replicaID, amount: amount}
+                        toNetwork: {id: metadata.rID, amount: amount}
                     };
                 }, remote: function (data) {
                     if (!this.state.dec.contains(data.id))
@@ -90,7 +90,6 @@ var delta_counter = {
                 return null;
         },
         applyDelta: function (delta, vv, meta) {
-            console.warn("Enter.", delta, vv);
             var diff = 0;
 
             for (var inc_i = 0; inc_i < delta.incs.length; inc_i++) {
@@ -99,8 +98,8 @@ var delta_counter = {
                     this.state.inc.set(o_i.id, 0);
 
                 if (this.state.inc.get(o_i.id) < o_i.value) {
-                    this.state.inc.set(o_i.id, o_i.value);
                     diff += o_i.value - this.state.inc.get(o_i.id);
+                    this.state.inc.set(o_i.id, o_i.value);
                 } else {
                     delta.incs = delta.incs.slice(0, inc_i).concat(delta.incs.slice(inc_i + 1, delta.incs.length));
                 }
@@ -111,18 +110,19 @@ var delta_counter = {
                     this.state.dec.set(o_d.id, 0);
 
                 if (this.state.dec.get(o_d.id) < o_d.value) {
-                    this.state.dec.set(o_d.id, o_d.value);
                     diff -= this.state.dec.get(o_d.id) - o_d.value;
+                    this.state.dec.set(o_d.id, o_d.value);
                 } else {
                     delta.decs = delta.decs.slice(0, dec_i).concat(delta.decs.slice(dec_i + 1, delta.decs.length));
                     dec_i--;
                 }
             }
 
-            console.warn("Exit:", diff, (delta.decs.length > 0 || delta.incs.length > 0));
             if (delta.decs.length > 0 || delta.incs.length > 0)
                 return {change: diff, flattened: {delta: delta, vv: vv, meta: meta}};
-            else
+            else if (diff != 0) {
+                return {change: diff, flattened: null};
+            } else
                 return {change: null, flattened: null}
         },
         getMeta: function () {

@@ -80,17 +80,17 @@ GeoOptimizedOverlay.prototype.handleConnectRequest = function (message, original
     //console.log(original);
     //console.log(message);
 
-    if (!this.overlay.hasPeer(message.sender)) {
+    if (!this.overlay.hasPeer(message.s)) {
         var actualDist = distanceFunction(this.distances, message.data.distances);
         if (message.data.close && actualDist <= 1) {
             if (Math.random() < 0.3 || this.activeCloseNodes.length + this.futureCloseNodes.length < this.options.MAX_CLOSE_NODES) {
-                this.futureCloseNodes.push(message.sender);
-                this.legion.connectionManager.connectPeer(message.sender);
+                this.futureCloseNodes.push(message.s);
+                this.legion.connectionManager.connectPeer(message.s);
             }
         } else if (message.data.far && actualDist > 1) {
             if (Math.random() < 0.3 || this.activeFarNodes.length + this.futureFarNodes.length < this.options.MAX_FAR_NODES) {
-                this.futureFarNodes.push(message.sender);
-                this.legion.connectionManager.connectPeer(message.sender);
+                this.futureFarNodes.push(message.s);
+                this.legion.connectionManager.connectPeer(message.s);
             }
         } else {
             console.error("Message has no close or far.")
@@ -110,7 +110,7 @@ GeoOptimizedOverlay.prototype.handleLocalRandomWalk = function (message, origina
             message.data.nodes = 1;
             for (var i = 0; i < tries; i++) {
                 var pos = Math.floor(this.activeCloseNodes.length * Math.random());
-                if (this.activeCloseNodes[pos] == message.sender) {
+                if (this.activeCloseNodes[pos] == message.s) {
                     if (this.activeCloseNodes.length > tries + 1) {
                         tries++;
                     }
@@ -122,23 +122,23 @@ GeoOptimizedOverlay.prototype.handleLocalRandomWalk = function (message, origina
             //console.warn("Cant walk: no close nodes.");
         }
     } else {
-        if (!this.overlay.hasPeer(message.sender)) {
+        if (!this.overlay.hasPeer(message.s)) {
             var actualDist = distanceFunction(this.distances, message.data.distances);
 
             //console.log("TTL==0, keeping, dist:" + actualDist);
             if (actualDist < 2) {
                 if (this.activeCloseNodes.length + this.futureCloseNodes.length < this.options.MAX_CLOSE_NODES) {
-                    this.futureCloseNodes.push(message.sender);
-                    this.legion.connectionManager.connectPeer(message.sender);
+                    this.futureCloseNodes.push(message.s);
+                    this.legion.connectionManager.connectPeer(message.s);
                 }
             } else {
                 if (this.activeFarNodes.length + this.futureFarNodes.length < this.options.MAX_FAR_NODES) {
-                    this.futureFarNodes.push(message.sender);
-                    this.legion.connectionManager.connectPeer(message.sender);
+                    this.futureFarNodes.push(message.s);
+                    this.legion.connectionManager.connectPeer(message.s);
                 }
             }
         } else {
-            //console.log("TL==0, i have this peer already: " + message.sender);
+            //console.log("TL==0, i have this peer already: " + message.s);
         }
     }
 };
@@ -157,22 +157,22 @@ GeoOptimizedOverlay.prototype.handleFarRandomWalk = function (message, original,
             //console.warn("Cant walk: no far nodes.");
         }
     } else {
-        if (!this.overlay.hasPeer(message.sender)) {
+        if (!this.overlay.hasPeer(message.s)) {
             var actualDist = distanceFunction(this.distances, message.data.distances);
             if (actualDist < 2) {
                 if (this.activeCloseNodes.length + this.futureCloseNodes.length < this.options.MAX_CLOSE_NODES) {
 
-                    this.futureCloseNodes.push(message.sender);
-                    this.legion.connectionManager.connectPeer(message.sender);
+                    this.futureCloseNodes.push(message.s);
+                    this.legion.connectionManager.connectPeer(message.s);
                 }
             } else {
                 if (this.activeFarNodes.length + this.futureFarNodes.length < this.options.MAX_FAR_NODES) {
-                    this.futureFarNodes.push(message.sender);
-                    this.legion.connectionManager.connectPeer(message.sender);
+                    this.futureFarNodes.push(message.s);
+                    this.legion.connectionManager.connectPeer(message.s);
                 }
             }
         } else {
-            //console.log("I have this peer already: " + message.sender);
+            //console.log("I have this peer already: " + message.s);
         }
     }
 };
@@ -181,11 +181,11 @@ GeoOptimizedOverlay.prototype.handleDistancesUpdate = function (message, origina
 
     var actualDist = distanceFunction(this.distances, message.data.distances);
 
-    var ca = this.activeCloseNodes.indexOf(message.sender);
-    var cf = this.futureCloseNodes.indexOf(message.sender);
+    var ca = this.activeCloseNodes.indexOf(message.s);
+    var cf = this.futureCloseNodes.indexOf(message.s);
 
-    var fa = this.activeFarNodes.indexOf(message.sender);
-    var ff = this.futureFarNodes.indexOf(message.sender);
+    var fa = this.activeFarNodes.indexOf(message.s);
+    var ff = this.futureFarNodes.indexOf(message.s);
 
     var sendDU = false;
     if (actualDist <= 1) {
@@ -202,7 +202,7 @@ GeoOptimizedOverlay.prototype.handleDistancesUpdate = function (message, origina
         }
         if (ca < 0) {
             this.TimesLocalCheckNoConnections = 0;
-            this.activeCloseNodes.push(message.sender);
+            this.activeCloseNodes.push(message.s);
         }
     } else {
         if (ca >= 0) {
@@ -217,7 +217,7 @@ GeoOptimizedOverlay.prototype.handleDistancesUpdate = function (message, origina
             this.futureFarNodes = arraySlicer(this.futureFarNodes, fa);
         }
         if (fa < 0) {
-            this.activeFarNodes.push(message.sender);
+            this.activeFarNodes.push(message.s);
         }
     }
     if (sendDU) {
