@@ -104,7 +104,6 @@ ConnectionManager.prototype.onCloseServer = function (serverConnection) {
     if (serverConnection instanceof this.legion.options.signallingConnection.type) {
         this.serverConnection = null;
         this.isStartingserverConnection = false;
-        this.legion.overlay.onServerDisconnect(serverConnection);
     }
     if (this.legion.options.objectServerConnection.type != "NONE") {
         if (serverConnection instanceof this.legion.options.objectServerConnection.type) {
@@ -113,13 +112,13 @@ ConnectionManager.prototype.onCloseServer = function (serverConnection) {
     }
     if (this.legion.bullyProtocol)
         this.legion.bullyProtocol.onServerDisconnect(serverConnection);
+    this.legion.overlay.onServerDisconnect(serverConnection);
 };
 
 ConnectionManager.prototype.onOpenServer = function (serverConnection) {
     console.log(this.legion.getTime() + " Overlay OPEN " + this.legion.id + " to " + serverConnection.remoteID + " of type " + (serverConnection.constructor.name));
     if (serverConnection instanceof this.legion.options.signallingConnection.type) {
         this.serverConnection = serverConnection;
-        this.legion.overlay.onServerConnection(serverConnection);
     }
     if (this.legion.options.objectServerConnection.type != "NONE") {
         if (serverConnection instanceof this.legion.options.objectServerConnection.type) {
@@ -129,6 +128,7 @@ ConnectionManager.prototype.onOpenServer = function (serverConnection) {
     if (this.legion.bullyProtocol)
         this.legion.bullyProtocol.onServerConnection(serverConnection);
     this.legion.onOpenServer(serverConnection);
+    this.legion.overlay.onServerConnection(serverConnection);
 };
 
 ConnectionManager.prototype.onOpenClient = function (clientConnection) {

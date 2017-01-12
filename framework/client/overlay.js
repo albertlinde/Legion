@@ -25,23 +25,25 @@ Overlay.prototype.getPeer = function (peerConnectionID) {
 Overlay.prototype.addPeer = function (peerConnection) {
     this.peers.set(peerConnection.remoteID, peerConnection);
     this.overlayProtocol.onClientConnection(peerConnection);
-    this.changedOverlay();
+    this.changedOverlay({peer: peerConnection.remoteID});
 };
 
 Overlay.prototype.removePeer = function (peerConnection) {
     this.peers.delete(peerConnection.remoteID);
     this.overlayProtocol.onClientDisconnect(peerConnection);
-    this.changedOverlay();
+    this.changedOverlay({peer: peerConnection.remoteID});
 };
 
 Overlay.prototype.onServerDisconnect = function (serverConnection) {
     this.overlayProtocol.onServerDisconnect(serverConnection);
-    this.changedOverlay();
+    var type = serverConnection.constructor.name;
+    this.changedOverlay({server: type, address: serverConnection.remoteID});
 };
 
 Overlay.prototype.onServerConnection = function (serverConnection) {
     this.overlayProtocol.onServerConnection(serverConnection);
-    this.changedOverlay();
+    var type = serverConnection.constructor.name;
+    this.changedOverlay({server: type, address: serverConnection.remoteID});
 };
 
 Overlay.prototype.changedOverlay = function (change) {
@@ -61,8 +63,10 @@ Overlay.prototype.getPeerIDs = function () {
 Overlay.prototype.getServerIDs = function () {
     var servers = [];
     if (!this.legion.bullyProtocol.amBullied()) {
-        servers.push("SignallingServer");
-        servers.push("ObjectServer");
+        if (this.legion.connectionManager.serverConnection)
+            servers.push("SignallingServer");
+        if (this.legion.objectStore.objectServer)
+            servers.push("ObjectServer");
     }
     return servers;
 };
