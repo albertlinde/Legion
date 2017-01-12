@@ -15,15 +15,21 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="./../../framework/client/adapter.js"></script>
+
+    <script src="./../../applications/legion-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-16x16.png">
 </head>
 
 <body role="document">
 
-<!-- Fixed navbar -->
+
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
+            <img href="#" style="float: left;margin-right: 10px" height="50px" src="img/favicon.png">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
                     aria-expanded="false" aria-controls="navbar">
                 <span class="sr-only">Toggle navigation</span>
@@ -31,30 +37,43 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
+
             <a class="navbar-brand" href="#">Legion</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li><a href="#about">About</a></li>
-                <li><a href="#messaging">Messaging</a></li>
                 <li><a href="#crdts">CRDTs</a></li>
+                <li><a href="#messaging">Messaging</a></li>
                 <li><a href="#overlays">Networking</a></li>
+                <!--
                 <li><a href="#server">Server Side</a></li>
                 <li><a href="#extensions">Extensions</a></li>
+                -->
                 <li><a href="#contact">Contact</a></li>
             </ul>
         </div>
-        <!--/.nav-collapse -->
     </div>
 </nav>
+<div class="panel panel-danger" id="network_status"
+     style="position:fixed;margin-top: 80px; margin-right: 25px; z-index: 9999; right: 0">
+    <div class="panel-heading">
+        <p style="margin-bottom: 0">Network status:</p>
+    </div>
+    <div class="panel-body">
+        <p style="width:150px;overflow: auto; white-space: nowrap">Servers: <span
+                id="network_status_server">0</span></p>
+
+        <p style="width:150px;overflow: auto;white-space: nowrap">Peers: <span
+                id="network_status_peerCount">0</span></p>
+    </div>
+</div>
 
 <div class="container theme-showcase" role="main">
-
-    <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
         <h1>Legion API</h1>
 
-        <p>An API for all your applications' data sharing needs.</p>
+        <p><b>The API for all your data requirements.</b></p>
 
         <p>Legion offers shared mutable data, replicates to the server for durability
             and handles all concurrency issues out of the box. Clients sharing data
@@ -62,363 +81,19 @@
         </p>
 
         <p>You can turn off peer-to-peer to get client-server only interactions, or turn of the server to get only p2p
-            interactions. Both enabled ensures reduced load, improved scalability and durability.</p>
+            interactions. Both enabled ensures <b> reduced load, improved scalability and durability.</b></p>
     </div>
 
-
-    <div class="page-header">
-        <h1 id="about">API usage</h1>
-    </div>
-    <p>
-        The following code shows how the Legion framework can be used at the client.
-    </p>
-
-
-<pre class="prettyprint linenums">
-    var legion = new Legion();                  //New Legion instance.
-    legion.join();                              //Join the network.
-
-    var objectStore = legion.getObjectStore();  //Object API.
-    var list = objectStore.get("someListID", Legion.List);
-
-    list.setHandler(function(elements, position, action){
-        console.log(action + " changed " + elements.length + "elements at position " + position + ".");
-    });
-
-    list.addLast("Apples");
-    list.addLast({item: "Oranges"});
-    list.add(1, "Bananas");
-    list.add(list.length(), "Kiwi");
-    list.getItems()
-        //-> ["Apples", "Bananas", Object{item: "Oranges"}, "Kiwi"]
-
-    var messaging = legion.getMessageAPI();       //Message API.
-    messaging.setHandlerFor("SomeMessageType", function (message) {
-        console.log(message.name + " says hi!");
-    });
-    messaging.broadcast("SomeMessageType", {name: "Username#3411"});
-
-
-</pre>
-
-    <div>
-        <div class="page-header">
-            <h1 id="messaging">Messaging</h1>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Usage</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Broadcast</td>
-                        <td>
-                            <a href="messaging.html" class="btn btn-xs btn-success">Example</a>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-6">
-                <div class="row text-right text-justify">
-                    <p>
-                        Messaging between peers.
-                        Messages are (tentatively) delivered at all clients.
-                        No guarantees are given! <b>At all!</b>
-                    </p>
-
-                    <div class="panel panel-danger">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">WIP</h3>
-                        </div>
-                        <div class="panel-body">
-                            Seperate internal and external message handlers.
-                            Support for Unicast.
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <div>
-        <div class="page-header">
-            <h1 id="crdts">Data types</h1>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Legion.DATA_TYPE</th>
-                        <th>Usage</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Counter</td>
-                        <td>
-                            <a href="counter.html" class="btn btn-xs btn-success">Example</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Set</td>
-                        <td>
-                            <a href="set.html" class="btn btn-xs btn-success">Example</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Map</td>
-                        <td>
-                            <a href="map.html" class="btn btn-xs btn-success">Example</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td>List</td>
-                        <td>
-                            <a href="list.html" class="btn btn-xs btn-success">Example</a>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-6">
-                <div class="row text-right text-justify">
-                    <p>
-                        All data types can be instantiated with Legion.DATA_TYPE.
-                        Currently implementations internally use Delta CRDTs[<a
-                            href="http://dl.acm.org/citation.cfm?id=2911163">ACM link</a>].
-
-                        <b>All clients connected to the network will replicate this object.</b>
-                    </p>
-
-                    <div class="panel panel-danger">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">WIP</h3>
-                        </div>
-                        <div class="panel-body">
-                            List is not implemented.
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-
-    </div>
-    <div>
-        <div class="page-header">
-            <h1 id="overlays">Networking</h1>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Details</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Cliques</td>
-                        <td>
-                            <a href="cliques.html" class="btn btn-xs btn-success">Example</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Random Graph</td>
-                        <td>
-                            <a href="randomGraph.html" class="btn btn-xs btn-success">Example</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Geo-Optimized</td>
-                        <td>
-                            <a href="geopt.html" class="btn btn-xs btn-success">Example</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td>DHT</td>
-                        <td>
-                            <a href="index.html" class="btn btn-xs btn-success">Example</a>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-6">
-                <div class="row text-right text-justify">
-                    <p>
-                        Default behaviour is using Geo-Optimized.
-                        Instantiating with other topologies can be seen in the examples.
-                    </p>
-
-                    <div class="panel panel-danger">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">WIP</h3>
-                        </div>
-                        <div class="panel-body">
-                            RandomGraph is under revision.
-                            DHT is WIP.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div>
-        <div class="page-header">
-            <h1 id="server">Server Side</h1>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Page</th>
-
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Signalling Server</td>
-                        <td><a href="index.html" class="btn btn-xs btn-danger">Example</a></td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Objects Server</td>
-                        <td><a href="index.html" class="btn btn-xs btn-danger">Example</a></td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Auth Server</td>
-                        <td><a href="index.html" class="btn btn-xs btn-danger">Example</a></td>
-                    </tr>
-
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-6">
-                <div class="row text-right text-justify">
-
-                    <p>Backend usage and how to run.</p>
-
-                    <div class="panel panel-danger">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">WIP</h3>
-                        </div>
-                        <div class="panel-body">
-                            Signalling Server.
-                            Objects Server.
-                            Auth Server.
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-    </div>
-    <div>
-        <div class="page-header">
-            <h1 id="extensions">API Extensions</h1>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Legion Backend</th>
-                        <th>No merge</th>
-                        <th>Merge</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td><a href="https://developers.google.com/google-apps/realtime/overview"> Google Drive Realtime
-                            API</a></td>
-                        <td><a href="gdrive_legion_only.html" class="btn btn-xs btn-success">Example<sup>1</sup></a></td>
-                        <td><a href="index.html" class="btn btn-xs btn-danger">Example<sup>2</sup></a></td>
-                        <td><a href="index.html" class="btn btn-xs btn-danger">Example<sup>3</sup></a></td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td><a href="#">Redis</a></td>
-                        <td colspan="3"><a href="index.html" style="width: 100%"
-                                           class="btn btn-xs btn-danger">Example</a></td>
-                    </tr>
-
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-md-6">
-                <div class="row text-right text-justify">
-
-                    <p>1 - Simple imitation of the API. Backend storage is NodeJS (also managing access control). <br>
-                        2,3 - Backend storage on original server. Access control is based on access on the original
-                        document.<br>
-                        2 - Data is obtained once when the first client is started. No operations are thereafter sent
-                        between the legacy operating clients and the Legion clients.<br>
-                        3 - Data from both the legacy clients and the
-                        Legion clients is merged both ways.</p>
-
-                    <div class="panel panel-danger">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">WIP</h3>
-                        </div>
-                        <div class="panel-body">
-                            String is missing from GDrive.
-                            Access control (sharing) is missing on GDrive (i.e., multiple clients (pages) can join BUT
-                            it has to
-                            be the same user / the user can also manually share).
-                            Code cleanup (Gdrive).
-                            Parameterizable Gdrive.
-                            Usage and examples.
-                            All of Redis.
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </div>
     <div id="alert_yes_chrome" class="alert alert-success hidden" role="alert">
         <strong>Good.</strong> You are using Chrome.
     </div>
     <div id="alert_no_chrome" class="alert alert-warning" role="alert">
         <strong>Warning!</strong> Please use Google Chrome
-        (or <a href="http://iswebrtcreadyyet.com"
-               target="_blank">another supporting browser</a>) to see the examples.
+        (or <a href="http://iswebrtcreadyyet.com" target="_blank">another supporting browser</a>)
+        to enable peer-to-peer connections. You are still able to use the examples
+        as your are defaulted back to client-server interaction.
     </div>
+
 
     <script type="application/javascript">
         if (webrtcDetectedBrowser == "chrome") {
@@ -429,30 +104,988 @@
             $("#alert_yes_chrome").addClass("hidden");
         }
     </script>
-    <p>
-        The usage of Google Chrome is suggested as most examples have only been tested using this browser.
-        Check <a href="http://iswebrtcreadyyet.com" target="_blank">http://iswebrtcreadyyet.com</a> to see which
-        browsers already support WebRTC datachannels!
-        Native Libraries for development on mobile devices are underway!
-    </p>
-
-    <div class="page-header">
-        <h1 id="contact">Contact</h1>
-    </div>
-    <div class="well">
-        <p><a href="http://novasys.di.fct.unl.pt/~alinde/">Albert van der Linde</a></p>
-
-        <p><a href="mailto:a.linde@campus.fct.unl.pt?Subject=Legion%20API" target="_top">Mail</a></p>
+    <div>
+        <div class="page-header">
+            <h1 id="about">API usage</h1>
+        </div>
+        <p>
+            The following code shows how the Legion framework can be used at the client.
+        </p>
     </div>
 
 
+    <pre class="prettyprint linenums">
+    var legion = new Legion(options);           //New Legion instance.
+    legion.join();                              //Join the network.
+    var objectStore = legion.getObjectStore();  //Object API.
+</pre>
+
+    <div>
+        <div class="page-header row">
+            <h1 id="crdts">Data types</h1>
+        </div>
+        <div class="row">
+            <div id="example_counter">
+                <h2>Counter</h2>
+                <pre class="prettyprint linenums">
+    var counter = objectStore.getOrCreate("counterID", legion.Counter);
+    counter.increment(1);                         //Argument must be >= 1
+    counter.decrement(1);                         //Argument must be >= 1
+    counter.increment(138);                       //Argument must be >= 1
+    counter.decrement(138);                       //Argument must be >= 1
+    console.log(counter.getValue());              //Returns the current value.</pre>
+                <div class="row">
+                    <div class="col-md">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Counter</th>
+                                <th>Add(1)</th>
+                                <th>Remove(1)</th>
+                                <th>Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <button onclick="inc_1()" id="inc_1" type="button"
+                                            class="btn btn-xs btn-success disabled">Increment
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="dec_1()" id="dec_1" type="button"
+                                            class="btn btn-xs btn-success disabled">Decrement
+                                    </button>
+                                </td>
+                                <td><span id="counter_1_value"></span></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>
+                                    <button onclick="inc_2()" id="inc_2" type="button"
+                                            class="btn btn-xs btn-success disabled">Increment
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="dec_2()" id="dec_2" type="button"
+                                            class="btn btn-xs btn-success disabled">Decrement
+                                    </button>
+                                </td>
+                                <td><span id="counter_2_value"></span></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>
+                                    <button onclick="inc_3()" id="inc_3" type="button"
+                                            class="btn btn-xs btn-success disabled">Increment
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="dec_3()" id="dec_3" type="button"
+                                            class="btn btn-xs btn-success disabled">Decrement
+                                    </button>
+                                </td>
+                                <td><span id="counter_3_value"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+            <div id="example_set">
+                <h2>Set</h2>
+                <pre class="prettyprint linenums">
+    var set = objectStore.getOrCreate("setID", legion.Set);
+
+    set.add(element);                   //Ads if not existing.
+    set.remove(element);                //Removes if exists.
+
+    console.log(set.asArray());         //Array of elements
+    console.log(set.contains(element)); //Boolean
+    console.log(set.size());            //Number</pre>
+                <div class="row">
+                    <div class="col-md">
+                        <div class="container">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    element: <input type="text" id="set_input" placeholder="value" value="value">
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Set</th>
+                                <th>Add(element)</th>
+                                <th>Remove(element)</th>
+                                <th>Elements</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <button onclick="add_1_set()" id="add_1_set" type="button"
+                                            class="btn btn-xs btn-success disabled">Add
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="remove_1_set()" id="remove_1_set" type="button"
+                                            class="btn btn-xs btn-success disabled">Remove
+                                    </button>
+                                </td>
+                                <td><span id="set_1_value"></span></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>
+                                    <button onclick="add_2_set()" id="add_2_set" type="button"
+                                            class="btn btn-xs btn-success disabled">Add
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="remove_2_set()" id="remove_2_set" type="button"
+                                            class="btn btn-xs btn-success disabled">Remove
+                                    </button>
+                                </td>
+                                <td><span id="set_2_value"></span></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>
+                                    <button onclick="add_3_set()" id="add_3_set" type="button"
+                                            class="btn btn-xs btn-success disabled">Add
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="remove_3_set()" id="remove_3_set" type="button"
+                                            class="btn btn-xs btn-success disabled">Remove
+                                    </button>
+                                </td>
+                                <td><span id="set_3_value"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">Set 1 Elements</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <ul style="height: 200px; overflow: scroll" class="list-group" id="list_set_1">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">Set 2 Elements</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <ul style="height: 200px; overflow: scroll" class="list-group" id="list_set_2">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">Set 3 Elements</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <ul style="height: 200px; overflow: scroll" class="list-group" id="list_set_3">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="example_map">
+                <h2>Map</h2>
+                <pre class="prettyprint linenums">
+    var map = objectStore.get("mapID", legion.Map);
+
+    map.set(key, value);                 //Adds a key-value pair
+    map.get(key);                        //Returns value for given key.
+    map.delete(key);                     //Deletes the key-value pair.
+
+    console.log(map.asArray());          //Array of pairs
+    console.log(map.keys());             //Array
+    console.log(map.values());           //Array
+    console.log(map.contains(element));  //Boolean
+    console.log(map.size());             //Number</pre>
+                <div class="row">
+                    <div class="col-md">
+                        <div class="container">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    key:
+                                    <input type="text" id="map_key" placeholder="key" value="key">
+                                    value:
+                                    <input type="text" id="map_value" placeholder="value" value="value">
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Map</th>
+                                <th>Set(key, value)</th>
+                                <th>Delete(key)</th>
+                                <th># Keys</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    <button onclick="add_1_map()" id="add_1_map" type="button"
+                                            class="btn btn-xs btn-success disabled">Set
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="remove_1_map()" id="remove_1_map" type="button"
+                                            class="btn btn-xs btn-success disabled">Remove
+                                    </button>
+                                </td>
+                                <td><span id="map_1_value"></span></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>
+                                    <button onclick="add_2_map()" id="add_2_map" type="button"
+                                            class="btn btn-xs btn-success disabled">Set
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="remove_2_map()" id="remove_2_map" type="button"
+                                            class="btn btn-xs btn-success disabled">Remove
+                                    </button>
+                                </td>
+                                <td><span id="map_2_value"></span></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>
+                                    <button onclick="add_3_map()" id="add_3_map" type="button"
+                                            class="btn btn-xs btn-success disabled">Set
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="remove_3_map()" id="remove_3_map" type="button"
+                                            class="btn btn-xs btn-success disabled">Remove
+                                    </button>
+                                </td>
+                                <td><span id="map_3_value"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">Map 1 Elements</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <ul style="height: 200px; overflow: scroll" class="list-group" id="list_map_1">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">Map 2 Elements</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <ul style="height: 200px; overflow: scroll" class="list-group" id="list_map_2">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">Map 3 Elements</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <ul style="height: 200px; overflow: scroll" class="list-group" id="list_map_3">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="example_list">
+                <h2>List</h2>
+                <pre class="prettyprint linenums">
+    var list = objectStore.get("listID", legion.List);
+
+    list.add(pos, element);        //Adds an element to given position
+    list.remove(pos);              //Removes current element at given position
+    list.get(pos)                  //Returns  the element at given position
+
+    console.log(list.asArray());   //Array of elements
+    console.log(list.length());    //Number</pre>
+                <div class="row">
+                    <div class="col-md">
+                        <div class="container">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">Input</h3>
+                                </div>
+                                <div class="panel-body">
+                                    Position:
+                                    <input type="text" placeholder="0" value="0" id="list_key">
+                                    Value:
+                                    <input type="text" placeholder="item" value="item" id="list_value">
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>List</th>
+                                <th>Add(pos, value)</th>
+                                <th>Remove(pos)</th>
+                                <th>Length</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>List 1</td>
+                                <td>
+                                    <button onclick="add_1_list()" id="add_1_list" type="button"
+                                            class="btn btn-xs btn-success disabled">Add
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="remove_1_list()" id="remove_1_list" type="button"
+                                            class="btn btn-xs btn-success disabled">Remove
+                                    </button>
+                                </td>
+                                <td><span id="list_1_value"></span></td>
+                            </tr>
+                            <tr>
+                                <td>List 2</td>
+                                <td>
+                                    <button onclick="add_2_list()" id="add_2_list" type="button"
+                                            class="btn btn-xs btn-success disabled">Add
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="remove_2_list()" id="remove_2_list" type="button"
+                                            class="btn btn-xs btn-success disabled">Remove
+                                    </button>
+                                </td>
+                                <td><span id="list_2_value"></span></td>
+                            </tr>
+                            <tr>
+                                <td>List 3</td>
+                                <td>
+                                    <button onclick="add_3_list()" id="add_3_list" type="button"
+                                            class="btn btn-xs btn-success disabled">Add
+                                    </button>
+                                </td>
+                                <td>
+                                    <button onclick="remove_3_list()" id="remove_3_list" type="button"
+                                            class="btn btn-xs btn-success disabled">Remove
+                                    </button>
+                                </td>
+                                <td><span id="list_3_value"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">List 1 Elements</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <ul style="height: 200px; overflow: scroll" class="list-group" id="list_list_1">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">List 2 Elements</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <ul style="height: 200px; overflow: scroll" class="list-group" id="list_list_2">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h3 class="panel-title">List 3 Elements</h3>
+                                </div>
+                                <div class="panel-body">
+                                    <ul style="height: 200px; overflow: scroll" class="list-group" id="list_list_3">
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="row text-right text-justify">
+                <p>
+                    All data types can be instantiated with Legion.DATA_TYPE.
+                    Currently implementations internally use Delta CRDTs[<a
+                        href="http://dl.acm.org/citation.cfm?id=2911163">ACM link</a>].
+
+                    <b>All clients connected to the network will replicate this object.</b>
+                </p>
+
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">WIP:</h3>
+                    </div>
+                    <div class="panel-body">
+                        Set needs a mass insert option.
+                        Map needs a mass insert option.
+                        List needs a mass insert option.
+                        Garbage collect for all datatypes has temporarily been removed due to inefficient
+                        implementation.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="page-header row">
+            <h1 id="messaging">Messaging</h1>
+        </div>
+        <div class="row">
+            <pre class="prettyprint linenums">
+    var messageAPI = legion.getMessageAPI();
+    messageAPI.setHandlerFor(String, Function(arg));
+    messageAPI.broadcast(String, *); //JSON.stringify(*) must parse.
+
+    //example:
+    messageAPI.setHandlerFor("Message", function(message){
+        //use messsage.data
+    });
+    messageAPI.broadcast("Message", {value: "Hi.", from:"Albert"});</pre>
+
+            <div class="container">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Messaging example</h3>
+                    </div>
+                    <div class="panel-body">
+                        Name:
+                        <input type="text" placeholder="Albert" value="Albert" id="name">
+                        Message:
+                        <input type="text" placeholder="Hi." value="Hi." id="message">
+
+                        <button onclick="sendMessage()" id="sendMessage" type="button"
+                                class="btn btn-xs btn-success disabled">Send
+                        </button>
+                        <ul style="height: 200px; overflow: scroll" class="list-group" id="messageList">
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="row text-right text-justify">
+                <p>
+                    Messaging currently floods the network.
+                    The server signalling server also propagates to ensure that any
+                    partitioned networks or lonely clients also receive messages.
+                    <b>Notice:</b> the only guarantee is <b>at-most once</b> delivery.
+                    The usage of data-objects is strongly suggest for most applications.
+                </p>
+
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">WIP:</h3>
+                    </div>
+                    <div class="panel-body">
+                        An efficient point-to-point primitive (i.e., network routing).
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div>
+            <div class="page-header row">
+                <h1 id="overlays">Networking</h1>
+            </div>
+            <div class="row">
+
+                <div class="row text-right text-justify">
+                    <p>
+                        Default behaviour is to use a network of nodes that gives priority over nearby nodes.
+                    </p>
+
+                    <p>
+                        More control over the topologies is available as follows:.
+                    </p>
+
+                    <pre class="prettyprint linenums">
+    var options = {
+        overlayProtocol:{
+            type: GeoOptimizedOverlay,        //default behaviour: more local connections
+            parameters: {
+                locator: HTTPPinger,
+                locations: ["http://ec2.us-east-1.amazonaws.com", "http://ec2.us-west-1.amazonaws.com",
+                        "ec2.eu-central-1.amazonaws.com", "ec2.eu-west-1.amazonaws.com"],
+                MIN_CLOSE_NODES: 3,           //attempts to keep this amount of close connections
+                MAX_CLOSE_NODES: 5,           //random drops if amount is over this
+                MIN_FAR_NODES: 1,             //attempts to keep this amount of far connections
+                MAX_FAR_NODES: 2,             //random drops if amount is over this
+                CLOSE_NODES_TIMER: 15 * 1000, //MinMax check interval for close nodes
+                FAR_NODES_TIMER: 55 * 1000,   //MinMax check interval for far nodes
+                LOCAL_FAILS_TILL_RESET: 20    //force locations update if no close nodes are found
+            }
+        overlayProtocol:{
+            type: Cliques,                    //all-to-all
+            parameters: {
+                floodInterval: 5000           //amount of times own id is flooded so other can connect
+            }
+        overlayProtocol:{
+            type: "NONE"                      //peer-to-peer disabled (data falls back to client-server, if enabled)
+        }
+      };
+    var legion = new Legion(options);</pre>
+
+                    <div class="panel panel-warning">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">WIP</h3>
+                        </div>
+                        <div class="panel-body">
+                            RandomGraph is under revision (currently removed from examples).
+                            DHT is WIP.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+<!--
+        <div>
+            <div class="page-header">
+                <h1 id="server">NodeJS backend</h1>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="row text-right text-justify">
+
+                        <p>Backend usage and how to run.</p>
+
+                        <div class="panel panel-danger">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">WIP on examples for:</h3>
+                            </div>
+                            <div class="panel-body">
+                                Signalling and Auth server.
+
+                                Set needs a mass insert option.
+                                Map needs a mass insert option.
+                                List needs a mass insert option. Objects server.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        -->
+        <!---
+        <div>
+            <div class="page-header">
+                <h1 id="extensions">API Extensions</h1>
+            </div>
+            <div class="row">
+
+                <div class="col-md-6">
+                    <div class="row text-right text-justify">
+
+                        <p>Usage of the Google Drive Realtime API as a backend for legion.</p>
+
+                        <p>Can be used as API only (using NodeJS servers),
+                            signalling,
+                            object storage, and
+                            syncronization to legacy clients.
+
+                        </p>
+
+                        <div class="panel panel-danger">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">WIP on showcase examples for:</h3>
+                            </div>
+                            <div class="panel-body">
+                                GDrive instantiation.
+                                GDrive document sharing (access control).
+                                Usage options and legacy sync.
+                                Limitations.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        -->
+
+        <div class="page-header">
+            <h1 id="contact">Contact</h1>
+        </div>
+        <div class="well">
+            <p>Webpage: <a href="http://novasys.di.fct.unl.pt/~alinde/">Albert van der Linde</a></p>
+
+            <p>email:<a href="mailto:a.linde@campus.fct.unl.pt?Subject=Legion%20API"
+                        target="_top">alinde@campus.fct.unl.pt</a></p>
+        </div>
+    </div>
 </div>
-<!-- /container -->
 
 
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
+<script type="application/javascript">
+
+    var legion = new Legion();
+    var objectStore = legion.getObjectStore();
+    var messageAPI = legion.getMessageAPI();
+    var counter_1, counter_2, counter_3;
+    var map_1, map_2, map_3;
+    var set_1, set_2, set_3;
+    var list_1, list_2, list_3;
+
+    legion.join();
+
+    legion.overlay.setOnChange(function (change, peerIds, serverIds) {
+        var network = $("#network_status");
+        var pc = $("#network_status_peerCount")[0];
+        var sc = $("#network_status_server")[0];
+        if (peerIds.length == 0 && serverIds.length == 0) {
+            network.removeClass("panel-success");
+            network.addClass("panel-danger");
+            pc.innerText = 0;
+            sc.innerText = 0;
+        } else {
+            network.removeClass("panel-danger");
+            network.addClass("panel-success");
+            pc.innerText = "(" + peerIds.length + ") " + peerIds;
+            if (serverIds.length > 0) {
+                sc.innerText = "Connected to [" + serverIds + "].";
+            } else {
+                sc.innerText = "Disconnected.";
+            }
+        }
+    });
+
+    legion.onJoin(function () {
+
+        //Messaging:
+        $("#sendMessage").removeClass("disabled");
+
+        messageAPI.setHandlerFor("Message", function (data) {
+            add_to_list(data);
+        });
+
+        //Counter:
+        $("#inc_1").removeClass("disabled");
+        $("#dec_1").removeClass("disabled");
+        $("#counter_1_value")[0].textContent = counter_1.getValue();
+        $("#inc_2").removeClass("disabled");
+        $("#dec_2").removeClass("disabled");
+        $("#counter_2_value")[0].textContent = counter_2.getValue();
+        $("#inc_3").removeClass("disabled");
+        $("#dec_3").removeClass("disabled");
+        $("#counter_3_value")[0].textContent = counter_3.getValue();
+
+        //Set:
+        $("#add_1_set").removeClass("disabled");
+        $("#remove_1_set").removeClass("disabled");
+
+        $("#add_2_set").removeClass("disabled");
+        $("#remove_2_set").removeClass("disabled");
+
+        $("#add_3_set").removeClass("disabled");
+        $("#remove_3_set").removeClass("disabled");
+
+        setChanged("#list_set_1", set_1.asArray(), 1);
+        setChanged("#list_set_2", set_2.asArray(), 2);
+        setChanged("#list_set_3", set_3.asArray(), 3);
+
+        //Map:
+        $("#add_1_map").removeClass("disabled");
+        $("#remove_1_map").removeClass("disabled");
+
+        $("#add_2_map").removeClass("disabled");
+        $("#remove_2_map").removeClass("disabled");
+
+        $("#add_3_map").removeClass("disabled");
+        $("#remove_3_map").removeClass("disabled");
+
+        mapChanged("#list_map_1", map_1.asArray(), 1);
+        mapChanged("#list_map_2", map_2.asArray(), 2);
+        mapChanged("#list_map_3", map_3.asArray(), 3);
+
+        //List:
+        $("#add_1_list").removeClass("disabled");
+        $("#remove_1_list").removeClass("disabled");
+        listChanged("#list_list_1", list_1.asArray());
+        $("#add_2_list").removeClass("disabled");
+        $("#remove_2_list").removeClass("disabled");
+        listChanged("#list_list_2", list_2.asArray());
+        $("#add_3_list").removeClass("disabled");
+        $("#remove_3_list").removeClass("disabled");
+        listChanged("#list_list_3", list_3.asArray());
+    });
+
+
+    //Messaging:
+    var add_to_list = function (message) {
+        var list = $("#messageList")[0];
+        list.innerHTML =
+            (
+                '<li class="list-group-item">' +
+                '<strong>' + new Date().toLocaleTimeString() + ' - </strong>' +
+                '<strong>' + message.data.from + ': </strong>' +
+                '<span>' + message.data.value + '</span>' +
+                '</li>'
+            ) +
+            list.innerHTML;
+    };
+
+    var sendMessage = function () {
+        if (messageAPI) {
+            var name = $("#name")[0].value;
+            var message = $("#message")[0].value;
+            messageAPI.broadcast("Message", {value: message, from: name});
+        }
+    };
+
+    //Counter:
+    counter_1 = objectStore.getOrCreate("counter_1", legion.Counter);
+    counter_2 = objectStore.getOrCreate("counter_2", legion.Counter);
+    counter_3 = objectStore.getOrCreate("counter_3", legion.Counter);
+
+    counter_1.setOnStateChange(function (updates, meta) {
+        console.log("Counter 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_1.getValue()));
+        $("#counter_1_value")[0].textContent = counter_1.getValue();
+    });
+    counter_2.setOnStateChange(function (updates, meta) {
+        console.log("Counter 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_2.getValue()));
+        $("#counter_2_value")[0].textContent = counter_2.getValue();
+    });
+    counter_3.setOnStateChange(function (updates, meta) {
+        console.log("Counter 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_3.getValue()));
+        $("#counter_3_value")[0].textContent = counter_3.getValue();
+    });
+
+    var inc_1 = function () {
+        counter_1.increment(1);
+    };
+    var dec_1 = function () {
+        counter_1.decrement(1);
+    };
+    var inc_2 = function () {
+        counter_2.increment(1);
+    };
+    var dec_2 = function () {
+        counter_2.decrement(1);
+    };
+    var inc_3 = function () {
+        counter_3.increment(1);
+    };
+    var dec_3 = function () {
+        counter_3.decrement(1);
+    };
+
+    //Set:
+    set_1 = objectStore.getOrCreate("set_1", legion.Set);
+    set_2 = objectStore.getOrCreate("set_2", legion.Set);
+    set_3 = objectStore.getOrCreate("set_3", legion.Set);
+
+    set_1.setOnStateChange(function (updates, meta) {
+        console.log("Set 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_1.asArray()));
+        setChanged("#list_set_1", set_1.asArray(), 1);
+    });
+    set_2.setOnStateChange(function (updates, meta) {
+        console.log("Set 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_2.asArray()));
+        setChanged("#list_set_2", set_2.asArray(), 2);
+    });
+    set_3.setOnStateChange(function (updates, meta) {
+        console.log("Set 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_3.asArray()));
+        setChanged("#list_set_3", set_3.asArray(), 3);
+    });
+    var setChanged = function (list_html_id, array, number) {
+        $(list_html_id)[0].innerHTML = "";
+        for (var i = 0; i < array.length; i++) {
+            $(list_html_id)[0].innerHTML = $(list_html_id)[0].innerHTML + ('<li class="list-group-item">' + array[i] + '</li>');
+        }
+        $("#set_" + number + "_value")[0].textContent = array.length;
+    };
+
+    var add_1_set = function () {
+        set_1.add($("#set_input")[0].value);
+    };
+    var add_2_set = function () {
+        set_2.add($("#set_input")[0].value);
+    };
+    var add_3_set = function () {
+        set_3.add($("#set_input")[0].value);
+    };
+    var remove_1_set = function () {
+        set_1.remove($("#set_input")[0].value);
+    };
+    var remove_2_set = function () {
+        set_2.remove($("#set_input")[0].value);
+    };
+    var remove_3_set = function () {
+        set_3.remove($("#set_input")[0].value);
+    };
+
+
+    //Map:
+    map_1 = objectStore.getOrCreate("map_1", legion.Map);
+    map_2 = objectStore.getOrCreate("map_2", legion.Map);
+    map_3 = objectStore.getOrCreate("map_3", legion.Map);
+
+    map_1.setOnStateChange(function (updates, meta) {
+        console.log("Map 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_1.asArray()));
+        mapChanged("#list_map_1", map_1.asArray(), 1);
+    });
+    map_2.setOnStateChange(function (updates, meta) {
+        console.log("Map 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_2.asArray()));
+        mapChanged("#list_map_2", map_2.asArray(), 2);
+    });
+    map_3.setOnStateChange(function (updates, meta) {
+        console.log("Map 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_3.asArray()));
+        mapChanged("#list_map_3", map_3.asArray(), 3);
+    });
+
+    var mapChanged = function (list_html_id, array, type) {
+        $(list_html_id)[0].innerHTML = "";
+        for (var i = 0; i < array.length; i++) {
+            $(list_html_id)[0].innerHTML = $(list_html_id)[0].innerHTML + ('<li class="list-group-item">' + array[i][0] + " : [" + array[i][1] + ']</li>');
+        }
+        $("#map_" + type + "_value")[0].textContent = array.length;
+    };
+
+    var getKeyValue = function () {
+        return {k: $("#map_key")[0].value, v: $("#map_value")[0].value};
+    };
+
+    var add_1_map = function () {
+        var kv = getKeyValue();
+        map_1.set(kv.k, kv.v);
+    };
+    var add_2_map = function () {
+        var kv = getKeyValue();
+        map_2.set(kv.k, kv.v);
+    };
+    var add_3_map = function () {
+        var kv = getKeyValue();
+        map_3.set(kv.k, kv.v);
+    };
+    var remove_1_map = function () {
+        var kv = getKeyValue();
+        map_1.delete(kv.k);
+    };
+    var remove_2_map = function () {
+        var kv = getKeyValue();
+        map_2.delete(kv.k);
+    };
+    var remove_3_map = function () {
+        var kv = getKeyValue();
+        map_3.delete(kv.k);
+    };
+
+    //List:
+    list_1 = objectStore.getOrCreate("list_1", legion.List);
+    list_2 = objectStore.getOrCreate("list_2", legion.List);
+    list_3 = objectStore.getOrCreate("list_3", legion.List);
+
+
+    list_1.setOnStateChange(function (updates, meta) {
+        console.log("List 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_1.getValue()));
+        listChanged("#list_list_1", list_1.asArray());
+    });
+    list_2.setOnStateChange(function (updates, meta) {
+        console.log("List 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_2.getValue()));
+        listChanged("#list_list_2", list_2.asArray());
+    });
+    list_3.setOnStateChange(function (updates, meta) {
+        console.log("List 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_3.getValue()));
+        listChanged("#list_list_3", list_3.asArray());
+    });
+
+    var listChanged = function (list_html_id, array) {
+        $(list_html_id)[0].innerHTML = "";
+        for (var i = 0; i < array.length; i++) {
+            $(list_html_id)[0].innerHTML = $(list_html_id)[0].innerHTML + ('<li class="list-group-item">' + array[i] + '</li>');
+        }
+
+        $("#list_1_value")[0].textContent = list_1.size();
+        $("#list_2_value")[0].textContent = list_2.size();
+        $("#list_3_value")[0].textContent = list_3.size();
+    };
+
+    var getKeyValue_list = function () {
+        return {k: parseInt($("#list_key")[0].value), v: $("#list_value")[0].value};
+    };
+
+    var add_1_list = function () {
+        var kv = getKeyValue_list();
+        list_1.add(kv.k, kv.v);
+    };
+    var add_2_list = function () {
+        var kv = getKeyValue_list();
+        list_2.add(kv.k, kv.v);
+    };
+    var add_3_list = function () {
+        var kv = getKeyValue_list();
+        list_3.add(kv.k, kv.v);
+    };
+    var remove_1_list = function () {
+        var kv = getKeyValue_list();
+        list_1.delete(kv.k);
+    };
+    var remove_2_list = function () {
+        var kv = getKeyValue_list();
+        list_2.delete(kv.k);
+    };
+    var remove_3_list = function () {
+        var kv = getKeyValue_list();
+        list_3.delete(kv.k);
+    };
+</script>
 </body>
 </html>
 
