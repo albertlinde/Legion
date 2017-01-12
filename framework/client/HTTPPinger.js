@@ -64,42 +64,42 @@ HTTPPinger.prototype.anotherPing = function (locationID, cb) {
 HTTPPinger.prototype.makeCorsRequest = function (url, callback) {
     var a, b;
     try {
-        if (pingDebug)console.warn(this.first);
+        if (pingDebug) console.warn(this.first);
         var xhr = new XMLHttpRequest();
         xhr.open("HEAD", url + "?rand=" + (new Date()).getTime(), !this.first);
 
         if (!this.first) {
             xhr.onloadstart = function () {
-                if (pingDebug)console.info("1");
+                if (pingDebug) console.info("1");
                 a = new Date();
             };
             xhr.onload = function () {
-                if (pingDebug)console.info("2");
+                if (pingDebug) console.info("2");
                 b = new Date();
                 callback(b.getTime() - a.getTime());
             };
             xhr.onerror = xhr.onabort = xhr.onload;
 
             xhr.onreadystatechange = function (a) {
-                if (pingDebug)console.info("B");
-                if (pingDebug)console.info(a)
+                if (pingDebug) console.info("B");
+                if (pingDebug) console.info(a)
             };
         } else {
-            if (pingDebug)console.info("1");
+            if (pingDebug) console.info("1");
             a = new Date();
         }
         xhr.setRequestHeader("Cache-Control", "no-cache");
         xhr.send();
-        if (pingDebug)console.log(xhr);
+        if (pingDebug) console.log(xhr);
         if (this.first) {
-            if (pingDebug)console.info("2");
+            if (pingDebug) console.info("2");
             b = new Date();
             callback(b.getTime() - a.getTime());
         }
     } catch (e) {
-        if (pingDebug)console.info(e);
+        if (pingDebug) console.info(e);
         if (this.first) {
-            if (pingDebug)console.info("2");
+            if (pingDebug) console.info("2");
             b = new Date();
             callback(b.getTime() - a.getTime());
         }
@@ -115,4 +115,3 @@ function dist(arr1, arr2) {
 
     return Math.ceil(Math.sqrt(sum));
 }
-

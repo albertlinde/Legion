@@ -45,7 +45,7 @@ function Legion(options) {
     if (!options.objectOptions) {
         options.objectOptions = {
             serverInterval: 5000,
-            peerInterval: 200
+            peerInterval: 10
         };
     }
     if (!options.bullyProtocol) {
