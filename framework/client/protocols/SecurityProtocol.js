@@ -18,7 +18,7 @@ SecurityProtocol.prototype.gotServerAuthenticationResult = function (result) {
     if (result.result == "Success") {
         this.keys.set(result.currentKey.id, result.currentKey);
         this.currKey = result.currentKey.id;
-        this.serverPublicKey = forge.pki.publicKeyFromAsn1(JSON.parse(result.serverPublicKey));
+        this.serverPublicKey = forge.pki.publicKeyFromAsn1(result.serverPublicKey);
 
         //TODO: the following creates infinicle if key changes twice in a small timespan.
         while (!this.queue.isEmpty) {
