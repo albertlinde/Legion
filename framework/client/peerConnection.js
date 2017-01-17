@@ -197,6 +197,20 @@ PeerConnection.prototype.getMeta = function () {
     return this.meta;
 };
 
+/**
+ * Sends the passed string, as is, to the socket.
+ * @param string {String}
+ */
+PeerConnection.prototype.sendToSocket = function (string) {
+    if (this.channel && this.channel.readyState == "open") {
+        //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).s);
+        this.channel.send(string);
+    } else {
+        this.close();
+        console.warn("Peer has no open channel.")
+    }
+};
+
 PeerConnection.prototype.send = function (message) {
     //TODO: as in serverconnection, check message type
     if (typeof message == "object") {
@@ -204,13 +218,7 @@ PeerConnection.prototype.send = function (message) {
     }
     if (this.channel && this.channel.readyState == "open") {
         var ciphered = this.legion.secure.cipher(message);
-        if (this.channel && this.channel.readyState == "open") {
-            this.channel.send(ciphered);
-            //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).s);
-        } else {
-            this.close();
-            console.warn("Peer has no open channel.")
-        }
+        this.sendToSocket(ciphered);
     } else {
         this.close();
         console.warn("Peer has no open channel.")
