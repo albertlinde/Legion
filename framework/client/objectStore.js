@@ -126,7 +126,7 @@ ObjectStore.prototype.gotContentFromNetwork = function (message, original, conne
                 }
                 crdt.deltaOperationFromNetwork(message.data[i], original, connection);
             } else {
-                crdt.deltaFromNetwork(message.data[i].flattenedDelta, connection);
+                var ret = crdt.deltaFromNetwork(message.data[i].fd, connection);
             }
         } else {
             console.error("Got changes for no crdt", message)
@@ -321,7 +321,7 @@ ObjectStore.prototype.propagate = function (objectID, opID, remoteArguments, ver
 ObjectStore.prototype.propagateFlattenedDelta = function (objectID, flattenedDelta, fromConnection, type) {
     var queuedDelta = {
         objectID: objectID,
-        flattenedDelta: flattenedDelta,
+        fd: flattenedDelta,
         fromConnection: fromConnection,
         type: type
     };
@@ -330,7 +330,7 @@ ObjectStore.prototype.propagateFlattenedDelta = function (objectID, flattenedDel
     if (this.objectServer) {
         queuedDelta = {
             objectID: objectID,
-            flattenedDelta: flattenedDelta,
+            fd: flattenedDelta,
             fromConnection: fromConnection,
             type: type
         };

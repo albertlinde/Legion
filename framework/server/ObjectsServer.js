@@ -64,11 +64,43 @@ function initService() {
      * @type {CRDT_Database}
      */
     var db = new CRDT_Database(messagingAPI, peerSyncs);
+    db.legion = {id: "db"};
 
     db.defineCRDT(CRDT_LIB.Counter);
     db.defineCRDT(CRDT_LIB.Set);
     db.defineCRDT(CRDT_LIB.Map);
     db.defineCRDT(CRDT_LIB.List);
+
+    db.handlers = {
+        peerSync: {
+            //The order is, when clients syncs objects are initiated on the server side.
+            //Only then can the server sync as this is when he HAS them.
+            //Only on PSA will the objects have the client's changes.
+            type: "OS:PS", callback: function (message, original, connection) {
+                //util.log("AA1" + JSON.stringify(message));
+                var objects = message.data;
+                for (var i = 0; i < objects.length; i++) {
+                    db.getOrCreate(objects[i].id, objects[i].type);
+                }
+                var ps = peerSyncs.get(connection.remoteID);
+                ps.sync();
+                ps.handleSync(message);
+            }
+        },
+        peerSyncAnswer: {
+            type: "OS:PSA", callback: function (message, original, connection) {
+                //util.log("AA2" + JSON.stringify(message));
+                var ps = peerSyncs.get(connection.remoteID);
+                ps.handleSyncAnswer(message, original, connection);
+            }
+        },
+        gotContentFromNetwork: {
+            type: "OS:C", callback: function (message, original, connection) {
+                //util.log("AA3" + JSON.stringify(message));
+                db.gotContentFromNetwork(message, original, connection);
+            }
+        }
+    };
 
     { // Client connection handling.
         var duplicates = new D.Duplicates();
@@ -98,36 +130,7 @@ function initService() {
 
                 //TODO: will be ClientSync
                 var ps = new PeerSync(db, db, socket);
-                db.handlers = {
-                    peerSync: {
-                        //The order is, when clients syncs objects are initiated on the server side.
-                        //Only then can the server sync as this is when he HAS them.
-                        //Only on PSA will the objects have the client's changes.
-                        type: "OS:PS", callback: function (message, original, connection) {
-                            //util.log("AA1" + JSON.stringify(message));
-                            var objects = message.data;
-                            for (var i = 0; i < objects.length; i++) {
-                                db.getOrCreate(objects[i].id, objects[i].type);
-                            }
-                            var ps = peerSyncs.get(connection.remoteID);
-                            ps.sync();
-                            ps.handleSync(message);
-                        }
-                    },
-                    peerSyncAnswer: {
-                        type: "OS:PSA", callback: function (message, original, connection) {
-                            //util.log("AA2" + JSON.stringify(message));
-                            var ps = peerSyncs.get(connection.remoteID);
-                            ps.handleSyncAnswer(message, original, connection);
-                        }
-                    },
-                    gotContentFromNetwork: {
-                        type: "OS:C", callback: function (message, original, connection) {
-                            //util.log("AA3" + JSON.stringify(message));
-                            db.gotContentFromNetwork(message, original, connection);
-                        }
-                    }
-                };
+
 
                 socket.on('message', function incoming(message) {
                     var parsed = JSON.parse(message);

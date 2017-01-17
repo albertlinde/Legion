@@ -513,9 +513,9 @@ var delta_orMap = {
             }
 
             if (change.removed || change.added)
-                return {change: change, flattened: {delta: delta, vv: vv, meta: meta}};
+                return {change: change, flattened: {d: delta, vv: vv, m: meta}};
             else if (hadEffect)
-                return {change: null, flattened: {delta: delta, vv: vv, meta: meta}};
+                return {change: null, flattened: {d: delta, vv: vv, m: meta}};
             else
                 return {change: null, flattened: null};
 

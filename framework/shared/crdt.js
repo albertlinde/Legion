@@ -143,8 +143,20 @@ CRDT.prototype.deltaOperationFromNetwork = function (deltaOperation, original, c
     }
 };
 
+/**
+ *
+ * @param delta
+ * @param connection
+ */
 CRDT.prototype.deltaFromNetwork = function (delta, connection) {
-    var applied = this.applyDelta(delta.delta, delta.vv, delta.meta);
+    var ret = {
+        hadNew: false
+    };
+
+    var applied = this.applyDelta(delta.d, delta.vv, delta.m);
+    if (applied.flattened) {
+        ret.hadNew = true;
+    }
     if (applied.flattened) {
         var vv_keys = Object.keys(delta.vv);
         for (var i = 0; i < vv_keys.length; i++) {
@@ -155,11 +167,12 @@ CRDT.prototype.deltaFromNetwork = function (delta, connection) {
                 this.versionVector.set(key, delta.vv[key]);
         }
 
-        var flattened = {delta: applied.flattened.delta, vv: applied.flattened.vv, meta: applied.flattened.meta};
+        var flattened = {d: applied.flattened.delta, vv: applied.flattened.vv, m: applied.flattened.m};
         this.objectStore.propagateFlattenedDelta(this.objectID, flattened, connection, this.crdt.type);
     }
     if (this.callback && applied.change) {
         this.callback(applied.change, {local: false});
     }
+    return ret;
 };
 
