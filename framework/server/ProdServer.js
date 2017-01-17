@@ -167,7 +167,7 @@ function initService() {
                             socket.close();
                         }
                     }
-                    else if (parsed.type == "ConnectRequest") {
+                    else if (parsed.type == "CR") {
                         /**
                          * @type{
                              * {distances: Array.<Number>,
@@ -239,17 +239,17 @@ function initService() {
                         }
 
                     }
-                    else if (parsed.type == "LocalRandomWalk") {
+                    else if (parsed.type == "LRW") {
                         console.log("ERROR!!!");
                         console.log(message);
                         console.log("ERROR!!!");
                     }
-                    else if (parsed.type == "FarRandomWalk") {
+                    else if (parsed.type == "FRW") {
                         console.log("ERROR!!!");
                         console.log(message);
                         console.log("ERROR!!!");
                     }
-                    else if (parsed.type == "DistancesUpdate") {
+                    else if (parsed.type == "DU") {
                         socket.distances = parsed.data.distances;
                         console.log("Updated distances for peer " + socket.remoteID + ":" + socket.distances)
                     } else {

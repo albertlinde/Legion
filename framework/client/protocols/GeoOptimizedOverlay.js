@@ -1,3 +1,8 @@
+
+var ConnectRequest = "CR";
+var LocalRandomWalk = "LRW";
+var FarRandomWalk = "FRW";
+var DistancesUpdate = "DU";
 /**
  *
  * When the server is first contacted: request a join to a close and a far node.
@@ -17,16 +22,16 @@ function GeoOptimizedOverlay(overlay, legion) {
     this.options = this.legion.options.overlayProtocol.parameters;
 
     var instance = this;
-    this.legion.messagingAPI.setHandlerFor("ConnectRequest", function (message, original, connection) {
+    this.legion.messagingAPI.setHandlerFor(ConnectRequest, function (message, original, connection) {
         instance.handleConnectRequest(message, original, connection)
     });
-    this.legion.messagingAPI.setHandlerFor("LocalRandomWalk", function (message, original, connection) {
+    this.legion.messagingAPI.setHandlerFor(LocalRandomWalk, function (message, original, connection) {
         instance.handleLocalRandomWalk(message, original, connection)
     });
-    this.legion.messagingAPI.setHandlerFor("FarRandomWalk", function (message, original, connection) {
+    this.legion.messagingAPI.setHandlerFor(FarRandomWalk, function (message, original, connection) {
         instance.handleFarRandomWalk(message, original, connection)
     });
-    this.legion.messagingAPI.setHandlerFor("DistancesUpdate", function (message, original, connection) {
+    this.legion.messagingAPI.setHandlerFor(DistancesUpdate, function (message, original, connection) {
         instance.handleDistancesUpdate(message, original, connection)
     });
 
@@ -221,7 +226,7 @@ GeoOptimizedOverlay.prototype.handleDistancesUpdate = function (message, origina
         }
     }
     if (sendDU) {
-        this.legion.generateMessage("DistancesUpdate", {distances: this.distances}, function (result) {
+        this.legion.generateMessage(DistancesUpdate, {distances: this.distances}, function (result) {
             peerConnection.send(result);
         });
     }
@@ -267,14 +272,14 @@ GeoOptimizedOverlay.prototype.checkCloseNodes = function () {
                 close: 1,
                 far: 0
             };
-            this.legion.generateMessage("ConnectRequest", extdata, function (result) {
+            this.legion.generateMessage(ConnectRequest, extdata, function (result) {
                 if (goo.legion.connectionManager.serverConnection) {
                     goo.legion.connectionManager.serverConnection.send(result);
                 }
             });
         }
         if (this.activeCloseNodes.length > 0) {
-            this.legion.generateMessage("LocalRandomWalk", data, function (result) {
+            this.legion.generateMessage(LocalRandomWalk, data, function (result) {
                 if (goo.activeCloseNodes.length > 0) {
                     var pos = Math.floor(goo.activeCloseNodes.length * Math.random());
                     goo.legion.messagingAPI.sendTo(goo.activeCloseNodes[pos], result, true);
@@ -333,13 +338,13 @@ GeoOptimizedOverlay.prototype.checkFarNodes = function () {
                 close: 0,
                 far: 1
             };
-            this.legion.generateMessage("ConnectRequest", data, function (result) {
+            this.legion.generateMessage(ConnectRequest, data, function (result) {
                 if (goo.legion.connectionManager.serverConnection) {
                     goo.legion.connectionManager.serverConnection.send(result);
                 }
             });
         } else {
-            this.legion.generateMessage("FarRandomWalk", data, function (result) {
+            this.legion.generateMessage(FarRandomWalk, data, function (result) {
                 if (goo.activeFarNodes.length > 0) {
                     var pos = Math.floor(goo.activeFarNodes.length * Math.random());
                     goo.legion.messagingAPI.sendTo(goo.activeFarNodes[pos], result, true);
@@ -382,7 +387,7 @@ GeoOptimizedOverlay.prototype.onClientConnection = function (peerConnection) {
     for (var i = 0; i < this.futureCloseNodes.length; i++) {
         if (this.futureCloseNodes[i] == peerConnection.remoteID) {
             this.futureCloseNodes = arraySlicer(this.futureCloseNodes, i);
-            this.legion.generateMessage("DistancesUpdate", {distances: this.distances}, function (result) {
+            this.legion.generateMessage(DistancesUpdate, {distances: this.distances}, function (result) {
                 peerConnection.send(result);
             });
             peerConnection.distances = 1;
@@ -394,7 +399,7 @@ GeoOptimizedOverlay.prototype.onClientConnection = function (peerConnection) {
     for (var j = 0; j < this.futureFarNodes.length; j++) {
         if (this.futureFarNodes[j] == peerConnection.remoteID) {
             this.futureFarNodes = arraySlicer(this.futureFarNodes, j);
-            this.legion.generateMessage("DistancesUpdate", {distances: this.distances}, function (result) {
+            this.legion.generateMessage(DistancesUpdate, {distances: this.distances}, function (result) {
                 peerConnection.send(result);
             });
             peerConnection.distances = 2;
@@ -448,7 +453,7 @@ GeoOptimizedOverlay.prototype.onServerConnection = function (serverConnection) {
             far: 1
         };
 
-        this.legion.generateMessage("ConnectRequest", data, function (result) {
+        this.legion.generateMessage(ConnectRequest, data, function (result) {
             if (goo.legion.connectionManager.serverConnection) {
                 goo.legion.connectionManager.serverConnection.send(result);
             } else {
@@ -456,7 +461,7 @@ GeoOptimizedOverlay.prototype.onServerConnection = function (serverConnection) {
             }
         });
     } else {
-        this.legion.generateMessage("DistancesUpdate", {distances: this.distances}, function (result) {
+        this.legion.generateMessage(DistancesUpdate, {distances: this.distances}, function (result) {
             goo.legion.messagingAPI.broadcastMessage(result);
         });
     }

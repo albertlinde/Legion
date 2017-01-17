@@ -1,11 +1,11 @@
 var DEFAULT_PEER_INIT_TIMEOUT = 15 * 1000;
 
-var KEEP_ALIVE_INTERVAL = 10000;
+var KEEP_ALIVE_INTERVAL = 25 * 1000;
 //TODO: constants should not be here.
 //TODO:  optimize sdp.
 //TODO: also send the current key id-> if receive a higher number then re-join the network.
 var KEEP_ALIVE_MESSAGE = {type: "ka"};
-var KEEP_ALIVE_MUST_HAVE = 30000;
+var KEEP_ALIVE_MUST_HAVE = 35000;
 var detailedDebug = false;
 function PeerConnection(remoteID, legion) {
     if (detailedDebug) {
