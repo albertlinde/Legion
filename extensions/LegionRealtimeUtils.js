@@ -51,7 +51,7 @@ function LegionRealtimeUtils(realtimeUtils) {
         FileID_KeyList: "FileID_KeyList",
         objectsMap: "RootMap",
         WAIT_ON_MAP_INIT: 20 * 1000,
-        WAIT_ON_MAP_INIT_LEGION_ONLY: 15 * 1000
+        WAIT_ON_MAP_INIT_LEGION_ONLY: 7 * 1000
     };
 
 
@@ -142,7 +142,8 @@ LegionRealtimeUtils.prototype.gotOverlayFile = function (onLoad) {
             type: GeoOptimizedOverlay,
             parameters: {
                 locator: HTTPPinger,
-                locations: ["https://ec2.us-east-1.amazonaws.com", "https://ec2.us-east-2.amazonaws.com", "https://ec2.us-west-1.amazonaws.com", "https://ec2.us-west-2.amazonaws.com"],
+                //locations: ["https://ec2.us-east-1.amazonaws.com", "https://ec2.us-east-2.amazonaws.com", "https://ec2.us-west-1.amazonaws.com", "https://ec2.us-west-2.amazonaws.com"],
+                locations: ["https://www.google.com"],
                 MIN_CLOSE_NODES: 3,
                 MAX_CLOSE_NODES: 5,
                 MIN_FAR_NODES: 1,
@@ -345,6 +346,19 @@ GapiInterfaceInitialModel.prototype.createMap = function (data) {
         var keys = Object.keys(data);
         for (var i = 0; i < keys.length; i++) {
             crdt.set(keys[i], data[keys[i]]);
+        }
+        console.info("New CRDT: " + rand + " : " + JSON.stringify(data));
+    } else
+        console.info("New CRDT: " + rand + ".");
+    return crdt;
+};
+
+GapiInterfaceInitialModel.prototype.createList = function (data) {
+    var rand = Math.random();
+    var crdt = this.lru.objectStore.getOrCreate(rand, this.lru.legion.List);
+    if (data) {
+        for (var i = 0; i < data.length; i++) {
+            crdt.set(i, data[i]);
         }
         console.info("New CRDT: " + rand + " : " + JSON.stringify(data));
     } else

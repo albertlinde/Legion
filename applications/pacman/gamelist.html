@@ -1,0 +1,116 @@
+  <!DOCTYPE html>
+  <html>
+      <head>
+          <meta charset="utf-8" />
+          <title>HTML5 Pacman</title>
+          <script src="https://apis.google.com/js/api.js"></script>
+          <script type="application/javascript" src="https://www.gstatic.com/realtime/realtime-client-utils.js"></script>
+      </head>
+
+      <body>
+          <h1>HTML5 Pacman List</h1>
+          Game List:
+          <div id = "gameList"></div>
+
+          <input type="text" id="newGameName">
+          <button id="creategame_button" onclick="createGame()">Create new game</button>
+          <button id="auth_button">Auth</button>
+
+          <script>
+              var CLIENT_ID = '83525911682-k7nnf7fsuc6b8v301smb81rdl00us8t3.apps.googleusercontent.com';
+              var realtimeUtils = new utils.RealtimeUtils({clientId: CLIENT_ID});
+              var collaborativeGamesList;
+
+              initialAuthorize();
+              document.getElementById('creategame_button').style.visibility = 'hidden';
+
+              function initialAuthorize() {
+                  realtimeUtils.authorize(function (response) {
+                      if (response.error) {
+                          var auth_button = document.getElementById('auth_button');
+                          //button.classList.remove('hidden');
+                          auth_button.addEventListener('click', function () {
+                              realtimeUtils.authorize(function (response) {
+                                  start();
+                              }, true);
+                          });
+                        } else {
+                          start();
+                      }
+                  }, false);
+              }
+
+              function start() {
+                document.getElementById('auth_button').style.visibility = 'hidden';
+                document.getElementById('creategame_button').style.visibility = 'visible';
+                  var id = realtimeUtils.getParam('file');
+                  if (id) {
+                      realtimeUtils.load(id.replace('/', ''), onGamesListFileLoaded, onGamesListFileInitialize);
+                  } else {
+                      console.log("Server list file not found: " + id);
+                  }
+              }
+
+              function onGamesListFileInitialize(model) {
+                  console.log("Server list file initialized");
+                  var list = model.createList();
+                  model.getRoot().set('games', list);
+              }
+
+              function onGamesListFileLoaded(doc) {
+                  console.log("Server list file loaded");
+                  collaborativeGamesList = doc.getModel().getRoot().get('games');
+                  wireList(collaborativeGamesList);
+              }
+
+              function wireList(collaborativeList) {
+                  collaborativeList.addEventListener(gapi.drive.realtime.EventType.VALUES_ADDED, function (evt) {
+                      //console.info("Game added");
+                      resetListHtml(collaborativeList.asArray());
+                  });
+                  collaborativeList.addEventListener(gapi.drive.realtime.EventType.VALUES_REMOVED, function (evt) {
+                      //console.info("Game removed");
+                      resetListHtml(collaborativeList.asArray());
+                  });
+                  collaborativeList.addEventListener(gapi.drive.realtime.EventType.VALUES_SET, function (evt) {
+                      //console.info("Game altered (shouldnt happen");
+                      resetListHtml(collaborativeList.asArray());
+                  });
+                  resetListHtml(collaborativeList.asArray());
+              }
+
+              function deleteFile(index){
+                collaborativeGamesList.remove(parseInt(index));
+              }
+
+              var resetListHtml = function (listItems) {
+                  var gameList = document.getElementById('gameList');
+                  var text = "<ul>";
+                  for(var i = 0;i<listItems.length;i++){
+                      text+= "<li>";
+                      text+= listItems[i].name+" ";
+                      text+="<input type=\"button\" onclick=\"location.href='\game?gameid="+listItems[i].fileid+"';\" value=\"Join Game\" />";
+                      text+='<input type="button" onClick="deleteFile(\'' + i + '\')" value="delete" />'
+                      text+="</li>";
+                  }
+                  text += "</ul>";
+                  gameList.innerHTML = text;
+              };
+
+              function createGame() {
+                  var gameName = document.getElementById('newGameName').value;
+                  realtimeUtils.createRealtimeFile(gameName, function (createResponse) {
+                      var game = {
+                          name: gameName,
+                          fileid: createResponse.id
+                      };
+                      collaborativeGamesList.push(game);
+                  });
+                  document.getElementById('newGameName').value = "";
+              }
+
+
+
+          </script>
+      </body>
+  </html>

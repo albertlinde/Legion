@@ -37,7 +37,7 @@ GapiObjectHandler.prototype.set = function (key, value) {
 };
 
 GapiObjectHandler.prototype.get = function (key) {
-    if (this.object.crdt.type == "DELTA_Map") {
+    if (this.object.crdt.type == "M") {
         var ret = this.object.get(key);
         if (ret.ref) {
             return this.interfaceHandler.get(ret.ref);
@@ -139,7 +139,8 @@ GapiObjectHandler.prototype.addEventListener = function (event, callback) {
         gapi.drive = {
             realtime: {
                 EventType: {
-                    VALUE_CHANGED: "1"
+                    VALUE_CHANGED: "1",
+                    VALUES_SET: "2"
                 }
             }
         }
@@ -176,27 +177,14 @@ GapiObjectHandler.prototype.addEventListener = function (event, callback) {
             });
             break;
         case gapi.drive.realtime.EventType.VALUE_CHANGED:
-            this.object.setOnStateChange(function (newState, changes) {
+            this.object.setOnStateChange(function (updates, meta) {
                 var ret = {};
-                if (newState.change) {
-                    ret.property = newState.change.key;
-                    try {
-                        ret.newValue = JSON.parse(newState.change.value);
-                    }
-                    catch (e) {
-                        ret.newValue = newState.change.value;
-                    }
-                }
-                else if (newState.add) {
-                    ret.property = newState.add.key;
-                    try {
-                        ret.newValue = JSON.parse(newState.add.value);
-                    }
-                    catch (e) {
-                        ret.newValue = newState.add.value;
-                    }
-                } else {
 
+                console.log("VALUE_CHANGED: " + JSON.stringify(updates) + " " + JSON.stringify(meta));
+
+                if (updates.set) {
+                    ret.property = updates.set.key;
+                    ret.newValue = JSON.parse(updates.set.value);
                 }
 
                 goi.callback(ret);

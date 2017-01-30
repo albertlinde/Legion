@@ -13,7 +13,13 @@ function PeerConnection(remoteID, legion) {
     }
     this.remoteID = remoteID;
     this.legion = legion;
-    this.peer = new RTCPeerConnection(servers, pcConstraint);
+
+    var iceServers = {
+        iceServers: [
+            {url: "stun:stun.1.google.com:19302"}
+        ]
+    };
+    this.peer = new RTCPeerConnection(iceServers);
     this.channel = null;
 
     var pc = this;
@@ -29,7 +35,12 @@ function PeerConnection(remoteID, legion) {
     }, KEEP_ALIVE_INTERVAL);
 }
 
-PeerConnection.prototype.keepAlive = function () {
+PeerConnection.prototype.keepAlive = function (force) {
+    if (force) {
+        this.send(KEEP_ALIVE_MESSAGE);
+        return;
+    }
+
     if (this.lastKeepAlive + KEEP_ALIVE_MUST_HAVE < Date.now()) {
         console.warn("Peer " + this.legion.id + " keepAlive timeout from " + this.remoteID + ".");
         if (this.isAlive())
@@ -139,7 +150,7 @@ PeerConnection.prototype.close = function () {
 PeerConnection.prototype.startLocal = function () {
     if (debug) console.log("start local: " + this.remoteID);
     var pc = this;
-    this.channel = this.peer.createDataChannel('sendDataChannel', dataConstraint);
+    this.channel = this.peer.createDataChannel('sendDataChannel', null);
 
 
     this.unique = this.legion.randInt(2) + 1;
@@ -229,16 +240,4 @@ PeerConnection.prototype.send = function (message) {
 /**
  * WebRTC parameters.
  */
-{
-    var servers = {
-        iceServers: [{"url": "stun:stun.l.google.com:19302"}]
-    };
-    var pcConstraint = {
-        optional: [{
-            RtpDataChannels: false
-        }]
-    };
-    var dataConstraint = null;
-
-}
 

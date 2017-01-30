@@ -219,9 +219,6 @@ var delta_set = {
                 }
             }
 
-            console.info(ret);
-            console.info("END getDelta Set");
-
             if (ret.r.length > 0 || ret.a.length > 0) {
                 return ret;
             } else {
@@ -232,7 +229,6 @@ var delta_set = {
         applyDelta: function (delta, vv, meta) {
             try {
                 console.info("Start APPLY Set")
-                console.info(delta)
                 var has = false;
                 var change = {added: [], removed: []};
                 for (var a = 0; a < delta.a.length; a++) {
@@ -304,9 +300,6 @@ var delta_set = {
                 console.error(e);
             }
 
-            console.info(has)
-            console.info(change)
-            console.info(delta)
             console.info("END APPLY set")
             if (change.removed || change.added)
                 return {change: change, flattened: {d: delta, vv: vv, m: meta}};

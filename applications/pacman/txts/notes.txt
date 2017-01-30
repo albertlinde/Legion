@@ -1,0 +1,43 @@
+
+TODO:
+
+------------GAME
+
+pacman multiplas instancias
+
+sons client side
+desenhar score de comer fantasmas (ou apagar esta funcionalidade)
+
+gui messages
+mensagem fim de jogo (quem ganhou)
+
+aviso ao jogador sobre que entidade está a controlar
+avisos de novo jogador/jogador saiu aos outros jogadores
+
+score para fantasmas
+
+
+tick -> time
+pacman/ghost move functions confusas
+
+ler mapa de ficehiro? (com mapa, posicoes iniciais, cores, direccoes iniciais, etc)
+remover cordenadas hardcoded
+
+tirar parametros das funcoes "sendmap", "sendpacscor", "sendghostdirection", etc?
+update -> dividir em funcoes mais pequenas (check pac-ghost collision, etc)
+clientside prediction (curvas)
+
+
+problemas:
+fantasmas nao deixam de ser azuis
+pacman "teleporta" pelas paredes (devido ao client prediction)
+balancing
+
+
+
+-------------SERVER
+
+game list
+client.on("getlist")
+client.on("join")
+client.on("exit")?

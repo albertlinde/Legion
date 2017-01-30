@@ -245,6 +245,24 @@ var Delta_Treedoc = {
                     //Never called.
                 }
             },
+            /**
+             * TODO: optimize this.
+             * Pushes to the end of the list.
+             */
+            pushAll: {
+                local: function (elements) {
+                    var prev = this.size();
+                    for (var i = 0; i < elements.length; i++) {
+                        this.add(prev + i, elements[i]);
+                    }
+                    return {
+                        toInterface: null,
+                        toNetwork: null
+                    };
+                }, remote: function (data) {
+                    console.error("In list, pushall.", data);
+                }
+            },
             add: {
                 local: function (pos, value, opID) {
                     if (pos >= 0 && pos <= this.state.list.size()) {

@@ -1,0 +1,93 @@
+generic message
+data {
+    msg: "msgtype"
+    ...
+}
+
+
+//STATE CLIENT
+data{
+    msg: "state.pause"
+}
+data{
+    msg: "state.unpause"
+}
+data{
+    msg: "state.start"
+}
+//STATE SERVER
+data{
+    msg: "state.set"
+    state: number
+}
+
+//MAP SERVER
+data{
+    msg: "map.reset"
+    map(matrix)
+}
+data{
+    msg: "map.setblock"
+    position:
+    type:
+}
+
+//PACMAN SERVER
+data{
+    msg: "pac.reset"
+    position:
+    lives:
+    score:
+    direction:
+    due:
+}
+data{
+    msg: "pac.position"
+    position:
+}
+data{
+    msg: "pac.lives"
+    lives:
+}
+etc...
+
+//GHOST SERVER
+data{
+    msg: "ghost.reset"
+    id:
+    colour:
+    position:
+    direction:
+    due:
+    eatable:
+    eaten:
+}
+data{
+    msg: "ghost.colour"
+    id:
+    color:
+}
+data{
+    msg: "ghost.position"
+    id:
+    position:
+}
+etc...
+
+//INPUT CLIENT
+data {
+    msg: "input.due"
+    due: code
+}
+
+//GUI / CLIENT CONNECT / DISCONNECT
+data{
+    msg: "gui.ghosteaten"
+    pos:
+    score:
+}
+
+
+
+
+

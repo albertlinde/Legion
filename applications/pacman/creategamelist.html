@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>GAPI</title>
+        <script src="https://apis.google.com/js/api.js"></script>
+        <script type="application/javascript" src="https://www.gstatic.com/realtime/realtime-client-utils.js"></script>
+
+    </head>
+
+    <body>
+
+    <button id="auth_button">Create</button>
+    <div id="created_file_id">File ID will appear here</div>
+
+
+        <script type="application/javascript">
+            var CLIENT_ID = '83525911682-k7nnf7fsuc6b8v301smb81rdl00us8t3.apps.googleusercontent.com';
+
+            var realtimeUtils = new utils.RealtimeUtils({clientId: CLIENT_ID});
+
+            initialAuthorize();
+
+            function initialAuthorize() {
+                realtimeUtils.authorize(function (response) {
+                    if (response.error) {
+                        var button = document.getElementById('auth_button');
+                        button.classList.add('visible');
+                        button.addEventListener('click', function () {
+                            realtimeUtils.authorize(function (response) {
+                                create();
+                            }, true);
+                        });
+                    } else {
+                        create();
+                    }
+                }, false);
+            }
+
+            function create() {
+                realtimeUtils.createRealtimeFile('Game List File', function (createResponse) {
+                    document.getElementById('created_file_id').textContent = createResponse.id;
+                    var body = {
+                      "role": "writer",
+                      "type": "anyone"
+                    };
+                    var perm_request = gapi.client.drive.permissions.insert({
+                      'fileId': createResponse.id,
+                      'resource': body
+                    });
+                    perm_request.execute(function(resp) { });
+                });
+            }
+
+        </script>
+    </body>
+</html>

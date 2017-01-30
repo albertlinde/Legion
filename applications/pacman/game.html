@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>HTML5 Pacman</title>
+    <script src="modernizr-1.5.min.js"></script>
+    <link href="game.css" media="screen" rel="stylesheet" type="text/css">
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script type="application/javascript" src="https://www.gstatic.com/realtime/realtime-client-utils.js"></script>
+
+    <script src="./../legion-min.js"></script>
+    <script src="./../drive-ext-min.js"></script>
+    <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
+    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
+</head>
+
+<body>
+
+<h1>Pacman</h1>
+
+<div id="pacman"></div>
+
+<div id="controlling"></div>
+
+<input type="text" id="email">
+<button id="invite_button" onclick="inviteToGame()">Invite to game</button>
+
+
+<script src="pacman.js"></script>
+
+<script type="text/javascript">
+    var game = new Game();
+    var el = document.getElementById("pacman");
+
+    if (Modernizr.canvas && Modernizr.localstorage &&
+        Modernizr.audio && (Modernizr.audio.ogg || Modernizr.audio.mp3)) {
+        window.setTimeout(function () {
+            game.init(el);
+        }, 0);
+    } else {
+        el.innerHTML = "Sorry, needs a decent browser<br /><small>" +
+            "(firefox 3.6+, Chrome 4+, Opera 10+ and Safari 4+)</small>";
+    }
+</script>
+
+</body>
+</html>
