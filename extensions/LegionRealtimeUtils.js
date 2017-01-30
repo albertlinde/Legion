@@ -13,9 +13,9 @@ function LegionRealtimeUtils(realtimeUtils) {
     this.objectStore = null;
     this.ready = false;
 
-    this.merge_to_legacy = true;
-    this.signalling_on_legacy = true;
-    this.persitence_on_legacy = true;
+    this.merge_to_legacy = false;
+    this.signalling_on_legacy = false;
+    this.persitence_on_legacy = false;
 
     /**
      * Used by all to obtains other files.
@@ -117,7 +117,7 @@ LegionRealtimeUtils.prototype.gotOverlayFile = function (onLoad) {
 
     if (!this.persitence_on_legacy) {
         persistence = ObjectServerConnection;
-        persistenceServer = {ip: "54.67.55.30", port: 8004};
+        persistenceServer = {ip: "localhost", port: 8000};
     } else {
         persistence = GDriveRTObjectsServerConnection;
         persistenceServer = {};
@@ -125,7 +125,7 @@ LegionRealtimeUtils.prototype.gotOverlayFile = function (onLoad) {
 
     if (!this.signalling_on_legacy) {
         signalling = ServerConnection;
-        signallingServer = {ip: "54.67.55.30", port: 8002};
+        signallingServer = {ip: "localhost", port: 443};
         secureServer = SecurityProtocol;
         bullyProtocol = ServerBully;
     } else {
@@ -142,12 +142,12 @@ LegionRealtimeUtils.prototype.gotOverlayFile = function (onLoad) {
             type: GeoOptimizedOverlay,
             parameters: {
                 locator: HTTPPinger,
-                locations: ["http://ec2.us-east-1.amazonaws.com", "http://ec2.us-east-2.amazonaws.com", "http://ec2.us-west-1.amazonaws.com", "http://ec2.us-west-2.amazonaws.com"],
-                MIN_CLOSE_NODES: 4,
-                MAX_CLOSE_NODES: 7,
+                locations: ["https://ec2.us-east-1.amazonaws.com", "https://ec2.us-east-2.amazonaws.com", "https://ec2.us-west-1.amazonaws.com", "https://ec2.us-west-2.amazonaws.com"],
+                MIN_CLOSE_NODES: 3,
+                MAX_CLOSE_NODES: 5,
                 MIN_FAR_NODES: 1,
                 MAX_FAR_NODES: 2,
-                CLOSE_NODES_TIMER: 6 * 1000,
+                CLOSE_NODES_TIMER: 7 * 1000,
                 FAR_NODES_TIMER: 15 * 1000,
                 LOCAL_FAILS_TILL_RESET: 20
             }
@@ -624,7 +624,7 @@ LegionRealtimeUtils.prototype.createObjectsFile = function (callback) {
                 var delta = rootMap.getDelta([], {a: [], r: []});
                 var meta = rootMap.getMeta();
                 var vv = rootMap.versionVector.toJSONString();
-                var flattened = {delta: delta, vv: vv, meta: meta};
+                var flattened = {delta: delta, vv: vv, m: meta};
 
                 list.insert(0, flattened);
 
@@ -643,7 +643,7 @@ LegionRealtimeUtils.prototype.createObjectsFile = function (callback) {
                         var delta = crdt.getDelta([], {a: [], r: []});
                         var meta = crdt.getMeta();
                         var vv = crdt.versionVector.toJSONString();
-                        var flattened = {delta: delta, vv: vv, meta: meta};
+                        var flattened = {delta: delta, vv: vv, m: meta};
 
                         list.insert(0, flattened);
 

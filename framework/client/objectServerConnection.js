@@ -61,3 +61,14 @@ ObjectServerConnection.prototype.send = function (message) {
         this.socket.send(message);
     }
 };
+
+/**
+ * Sends the passed string, as is, to the socket.
+ * @param string {String}
+ */
+ObjectServerConnection.prototype.sendToSocket = function (string) {
+    if (this.socket.readyState == WebSocket.OPEN) {
+        //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).s);
+        this.socket.send(message);
+    }
+};

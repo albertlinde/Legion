@@ -6,13 +6,13 @@ function ConnectionManager(legion) {
 
     var cm = this;
     //TODO: the following strings are defined where?
-    this.legion.messagingAPI.setHandlerFor("OfferAsAnswer", function (message, original) {
+    this.legion.messagingAPI.setHandlerFor("C:OA", function (message, original) {
         cm.handleSignalling(message, original)
     });
-    this.legion.messagingAPI.setHandlerFor("OfferReturn", function (message, original) {
+    this.legion.messagingAPI.setHandlerFor("C:OR", function (message, original) {
         cm.handleSignalling(message, original)
     });
-    this.legion.messagingAPI.setHandlerFor("ICE", function (message, original) {
+    this.legion.messagingAPI.setHandlerFor("C:I", function (message, original) {
         cm.handleSignalling(message, original)
     });
 
@@ -74,7 +74,7 @@ ConnectionManager.prototype.handleSignalling = function (message, original) {
     if (message.destination != this.legion.id) {
         this.legion.messagingAPI.broadcastMessage(original);
     } else {
-        if (message.type == "OfferAsAnswer") {
+        if (message.type == "C:OA") {
             this.connectPeerRemote(message);
         } else {
             var unique = message.unique;
@@ -84,10 +84,10 @@ ConnectionManager.prototype.handleSignalling = function (message, original) {
                     console.warn("Got as unique", unique, "when expecting", pc.unique);
                 } else {
                     switch (message.type) {
-                        case "OfferReturn":
+                        case "C:OR":
                             pc.returnOffer(message.data);
                             return;
-                        case "ICE":
+                        case "C:I":
                             pc.return_ice(message.data);
                             return;
                     }
@@ -157,7 +157,7 @@ ConnectionManager.prototype.onCloseClient = function (clientConnection) {
 ConnectionManager.prototype.sendStartOffer = function (offer, unique, clientConnection) {
     var cm = this;
     //TODO: see CM.constructor
-    this.legion.generateMessage("OfferAsAnswer", offer, function (result) {
+    this.legion.generateMessage("C:OA", offer, function (result) {
         result.destination = clientConnection.remoteID;
         result.unique = unique;
         cm.legion.messagingAPI.broadcastMessage(result);
@@ -167,7 +167,7 @@ ConnectionManager.prototype.sendStartOffer = function (offer, unique, clientConn
 ConnectionManager.prototype.sendReturnOffer = function (offer, unique, clientConnection) {
     var cm = this;
     //TODO: see CM.constructor
-    this.legion.generateMessage("OfferReturn", offer, function (result) {
+    this.legion.generateMessage("C:OR", offer, function (result) {
         result.destination = clientConnection.remoteID;
         result.unique = unique;
         cm.legion.messagingAPI.broadcastMessage(result);
@@ -177,7 +177,7 @@ ConnectionManager.prototype.sendReturnOffer = function (offer, unique, clientCon
 ConnectionManager.prototype.sendICE = function (candidate, unique, clientConnection) {
     var cm = this;
     //TODO: see CM.constructor
-    this.legion.generateMessage("ICE", candidate, function (result) {
+    this.legion.generateMessage("C:I", candidate, function (result) {
         result.destination = clientConnection.remoteID;
         result.unique = unique;
         cm.legion.messagingAPI.broadcastMessage(result);

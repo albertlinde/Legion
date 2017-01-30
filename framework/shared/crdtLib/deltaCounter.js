@@ -26,7 +26,8 @@ var delta_counter = {
         operations: {
             increment: {
                 local: function (amount, metadata) {
-                    if (!amount) {
+                    if (!metadata) {
+                        metadata = amount;
                         amount = 1;
                     }
                     return {
@@ -119,7 +120,7 @@ var delta_counter = {
             }
 
             if (delta.decs.length > 0 || delta.incs.length > 0)
-                return {change: diff, flattened: {delta: delta, vv: vv, meta: meta}};
+                return {change: diff, flattened: {d: delta, vv: vv, m: meta}};
             else if (diff != 0) {
                 return {change: diff, flattened: null};
             } else

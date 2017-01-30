@@ -817,20 +817,22 @@
         var network = $("#network_status");
         var pc = $("#network_status_peerCount")[0];
         var sc = $("#network_status_server")[0];
-        if (peerIds.length == 0 && serverIds.length == 0) {
+        if (serverIds.length > 0) {
+            sc.innerText = "Connected to [" + serverIds + "].";
+        } else {
+            sc.innerText = "Disconnected.";
+        }
+        if (peerIds.length == 0) {
+            pc.innerText = "No peers.";
+        } else {
+            pc.innerText = "(" + peerIds.length + ") " + peerIds;
+        }
+        if (serverIds.length == 1) {
             network.removeClass("panel-success");
             network.addClass("panel-danger");
-            pc.innerText = 0;
-            sc.innerText = 0;
         } else {
             network.removeClass("panel-danger");
             network.addClass("panel-success");
-            pc.innerText = "(" + peerIds.length + ") " + peerIds;
-            if (serverIds.length > 0) {
-                sc.innerText = "Connected to [" + serverIds + "].";
-            } else {
-                sc.innerText = "Disconnected.";
-            }
         }
     });
 

@@ -64,9 +64,9 @@ function extractMetaFrom(rootMapOps, type, returnAsMaps) {
         var added = new ALMap();
         var removed = new ALMap();
         for (var i = 0; i < rootMapOps.length; i++) {
-            if (rootMapOps[i].delta) {
-                var ads = rootMapOps[i].meta.added;
-                var rms = rootMapOps[i].meta.removed;
+            if (rootMapOps[i].d) {
+                var ads = rootMapOps[i].m.a;
+                var rms = rootMapOps[i].m.r;
                 var m, j;
                 for (j = 0; j < ads.length; j++) {
                     m = ads[j];
@@ -99,8 +99,8 @@ function extractMetaFrom(rootMapOps, type, returnAsMaps) {
         }
         if (!returnAsMaps) {
             return {
-                added: added.toArray(),
-                removed: removed.toArray()
+                a: added.toArray(),
+                r: removed.toArray()
             };
         }
         else {
@@ -130,7 +130,7 @@ GDriveRTObjectsServerConnection.prototype.onSendPeerSync = function () {
         console.info(op);
         if (op.opID) {
             localRootMap.deltaOperationFromNetwork(op, op, this);
-        } else if (op.delta) {
+        } else if (op.d) {
             localRootMap.deltaFromNetwork(op, this);
         } else {
             console.error(op);
@@ -144,7 +144,7 @@ GDriveRTObjectsServerConnection.prototype.onSendPeerSync = function () {
     if (deltaToSend) {
         var metaToSend = localRootMap.getMeta();
         var vvToSend = localRootMap.versionVector.toJSONString();
-        var flattened = {delta: deltaToSend, vv: vvToSend, meta: metaToSend};
+        var flattened = {d: deltaToSend, vv: vvToSend, m: metaToSend};
         rootMap.insert(rootMap.length, flattened);
     }
     var objectKeys = localRootMap.keys();
@@ -197,7 +197,7 @@ GDriveRTObjectsServerConnection.prototype.onSendPeerSync = function () {
                     if (deltaToSend) {
                         var metaToSend = localObject.getMeta();
                         var vvToSend = localObject.versionVector.toJSONString();
-                        var flattened = {delta: deltaToSend, vv: vvToSend, meta: metaToSend};
+                        var flattened = {d: deltaToSend, vv: vvToSend, m: metaToSend};
                         objectList.insert(objectList.length, flattened);
                     }
                 }
@@ -250,9 +250,9 @@ GDriveRTObjectsServerConnection.prototype.driveListHasOP = function (oid, list, 
             console.error("No key for this.", oid, list, opOrDelta, rootMetas);
         }
     } else if (opOrDelta.delta) {
-        var meta = opOrDelta.meta;
-        var myAdds = meta.added;
-        var myRemoves = meta.removed;
+        var meta = opOrDelta.m;
+        var myAdds = meta.a;
+        var myRemoves = meta.r;
 
         var i;
         for (i = 0; i < myAdds.length; i++) {
@@ -288,10 +288,10 @@ GDriveRTObjectsServerConnection.prototype.onServerContentFromNetwork = function 
             console.error("Found no", message, i)
         } else {
             var objectList = this.document.getModel().getRoot().get(objectID);
-            if (objects[i].flattenedDelta) {
-                if (!this.driveListHasOP(objectID, objectList.asArray(), objects[i].flattenedDelta)) {
+            if (objects[i].fd) {
+                if (!this.driveListHasOP(objectID, objectList.asArray(), objects[i].fd)) {
                     console.log("Adding FD to drive list.");
-                    objectList.insert(objectList.length, objects[i].flattenedDelta);
+                    objectList.insert(objectList.length, objects[i].fd);
                 }
             } else if (objects[i].opID) {
                 var arr = objectList.asArray();

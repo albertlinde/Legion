@@ -135,6 +135,15 @@ GapiObjectHandler.prototype.asArray = function () {
 GapiObjectHandler.prototype.addEventListener = function (event, callback) {
     this.callbacks.push(callback);
     var goi = this;
+    if (!gapi.drive) {
+        gapi.drive = {
+            realtime: {
+                EventType: {
+                    VALUE_CHANGED: "1"
+                }
+            }
+        }
+    }
     switch (event) {
         case gapi.drive.realtime.EventType.TEXT_INSERTED:
             this.object.setOnStateChange(function () {
