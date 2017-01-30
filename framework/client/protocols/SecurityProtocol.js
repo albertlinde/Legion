@@ -11,6 +11,8 @@ function SecurityProtocol(legion) {
     this.serverPublicKey = null;
 
     this.queue = new DS_DLList();
+    this.temp = {};
+    this.log = false;
 }
 
 SecurityProtocol.prototype.gotServerAuthenticationResult = function (result) {
@@ -73,31 +75,56 @@ SecurityProtocol.prototype.cipher = function (plain) {
     cipher.update(forge.util.createBuffer(plain));
     cipher.finish();
 
-    return "7." + currentKey.id + ".7:" + cipher.output.bytes();
+    return "7." + currentKey.id + ".7:" + cipher.output.bytes() + "7..7";
 };
 
 SecurityProtocol.prototype.decipher = function (msg, pc, old) {
-    if (msg[0] != '7' && msg[1] != '.') {
-        console.error("Failed on decipher due msg", msg, "from: " + pc.remoteID);
-        return;
+    if (
+        (msg[0] == '7' && msg[1] == '.')
+        &&
+        (msg[msg.length - 4] == "7"
+        &&
+        msg[msg.length - 3] == "."
+        &&
+        msg[msg.length - 2] == "."
+        &&
+        msg[msg.length - 1] == "7")
+    ) {
+        if (this.log) console.log("MC: First and last.");
+    } else {
+        if (msg[0] == '7' && msg[1] == '.') {
+            if (this.log) console.log("MC: First.");
+            this.temp[pc.remoteID] = msg;
+            return true;
+        } else if (msg[msg.length - 4] == "7" && msg[msg.length - 3] == "." && msg[msg.length - 2] == "." && msg[msg.length - 1] == "7") {
+            msg = this.temp[pc.remoteID] + msg;
+            this.temp[pc.remoteID] = "";
+            if (this.log) console.log("MC: Last.");
+        } else {
+            if (this.log) console.log("MC: Intermediate.");
+            this.temp[pc.remoteID] = this.temp[pc.remoteID] + msg;
+            return true;
+        }
     }
+
     var i;
     for (i = 2; msg[i] != '.'; i++) {
     }
 
     var keyID = parseInt(msg.substring(2, i));
     if (keyID < this.getCurrentKeyID()) {
-        console.error("Failed on decipher due KEY", msg, "from: " + pc.remoteID);
+        console.error("Failed on decipher due KEY", "from: " + pc.remoteID);
         return;
     }
-    if (keyID > this.getCurrentKeyID()) {
-        this.queue.addLast({msg: old, pc: pc});
+    if (!this.getCurrentKeyID() || keyID > this.getCurrentKeyID()) {
+        this.queue.addLast({msg: "7." + keyID + ".7:" + msg + "7..7", pc: pc});
+        console.error("Key failed: " + keyID);
         this.legion.join();
         return true;
     }
 
     var currentKey = this.keys.get(keyID);
-    var encr = msg.substring(i + 3);
+    var encr = msg.substring(i + 3, msg.length - 4);
 
     var decipher = forge.cipher.createDecipher('AES-CBC', currentKey.key);
     decipher.start({iv: currentKey.iv});
