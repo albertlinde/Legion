@@ -154,8 +154,7 @@ CRDT.prototype.deltaFromNetwork = function (delta, connection) {
             else
                 this.versionVector.set(key, delta.vv[key]);
         }
-
-        var flattened = {delta: applied.flattened.delta, vv: applied.flattened.vv, meta: applied.flattened.meta};
+        var flattened = {d: applied.flattened.d, vv: applied.flattened.vv, m: applied.flattened.m};
         this.objectStore.propagateFlattenedDelta(this.objectID, flattened, connection, this.crdt.type);
     }
     if (this.callback && applied.change) {

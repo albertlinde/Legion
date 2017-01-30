@@ -158,8 +158,7 @@ var delta_set = {
             }
         },
         getDelta: function (vv, meta) {
-            console.info("START getDelta Set");
-            console.info(meta);
+
             var ret = {a: [], r: []};
 
             var hisAdds = meta.a;

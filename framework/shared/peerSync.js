@@ -113,14 +113,14 @@ PeerSync.prototype.handleSync = function (message) {
 
     for (var i = 0; i < objects.length; i++) {
         var crdt = this.objectStore.getOrCreate(objects[i].id, objects[i].type);
-        var toSend = crdt.getDelta(objects[i].vv, objects[i].meta);
+        var toSend = crdt.getDelta(objects[i].vv, objects[i].m);
         if (toSend != null) {
             answer.deltas.push({
                 id: crdt.objectID,
-                delta: toSend,
+                d: toSend,
                 type: crdt.crdt.type,
                 vv: crdt.versionVector.toJSONString(),
-                meta: crdt.getMeta()
+                m: crdt.getMeta()
             });
         }
     }
@@ -140,10 +140,10 @@ PeerSync.prototype.handleSync = function (message) {
             if (toSend != null) {
                 answer.deltas.push({
                     id: crdt.objectID,
-                    delta: toSend,
+                    d: toSend,
                     type: crdt.crdt.type,
                     vv: crdt.versionVector.toJSONString(),
-                    meta: crdt.getMeta()
+                    m: crdt.getMeta()
                 });
             } else {
                 console.warn("No data to send for crdt: " + mine[i]);
@@ -172,7 +172,7 @@ PeerSync.prototype.sync = function () {
             id: crdt.objectID,
             vv: crdt.versionVector.toJSONString(),
             type: crdt.crdt.type,
-            meta: crdt.getMeta()
+            m: crdt.getMeta()
         });
     }
     this.legion.generateMessage(this.objectStore.handlers.peerSync.type, objects, function (result) {

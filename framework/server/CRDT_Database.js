@@ -130,7 +130,7 @@ CRDT_Database.prototype.propagate = function (objectID, operationID, remoteArgum
 CRDT_Database.prototype.propagateFlattenedDelta = function (objectID, flattenedDelta, fromConnection, type) {
     var queuedDelta = {
         objectID: objectID,
-        flattenedDelta: flattenedDelta,
+        fd: flattenedDelta,
         fromConnection: fromConnection,
         type: type
     };
@@ -192,7 +192,7 @@ CRDT_Database.prototype.gotContentFromNetwork = function (message, original, con
                 }
                 crdt.deltaOperationFromNetwork(message.data[i], original, connection);
             } else {
-                crdt.deltaFromNetwork(message.data[i].flattenedDelta, connection);
+                crdt.deltaFromNetwork(message.data[i].fd, connection);
             }
             //TODO: see (copy) client.objectstore
         } else {
