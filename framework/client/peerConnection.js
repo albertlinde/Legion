@@ -117,6 +117,10 @@ PeerConnection.prototype.cancelAll = function (notDuplicate) {
 
 PeerConnection.prototype.returnOffer = function (offer) {
     if (detailedDebug) console.log(offer);
+    //console.log(offer.sdp);
+    //offer.sdp = offer.sdp.replace("webrtc-datachannel 1024", "webrtc-datachannel 4096 max-message-size=6553600");
+    //offer.sdp = offer.sdp.replace("b=AS:30", "b=AS:1638400");
+    //console.log(offer.sdp);
     this.peer.setRemoteDescription(new RTCSessionDescription(offer));
 };
 
@@ -176,6 +180,10 @@ PeerConnection.prototype.startLocal = function () {
 };
 
 PeerConnection.prototype.startRemote = function (offer, unique) {
+    //console.log(offer.sdp);
+    //offer.sdp = offer.sdp.replace("webrtc-datachannel 1024", "webrtc-datachannel 4096 max-message-size=6553600");
+    //offer.sdp = offer.sdp.replace("b=AS:30", "b=AS:1638400");
+    //console.log(offer.sdp);
     this.unique = unique;
     if (detailedDebug) console.log(offer);
     if (debug) console.log("start remote: " + this.remoteID);
