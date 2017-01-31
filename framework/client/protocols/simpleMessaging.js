@@ -61,9 +61,16 @@ FloodMessaging.prototype.broadcastMessage = function (message, except, useFanout
         if (peers[i].remoteID == message.s)
             continue;
         var send = true;
-        for (var j = 0; send && except && j < except.length; j++)
-            if (except[j] && (peers[i].remoteID == except[j].remoteID))
-                send = false;
+        if (except)
+            for (var j = 0; send && (j < except.length); j++)
+                if (except[j])
+                    if (except[j].remoteID) {
+                        if (peers[i].remoteID == except[j].remoteID)
+                            send = false;
+                    } else {
+                        if (peers[i].remoteID == except[j])
+                            send = false;
+                    }
         if (send) {
             if (message.type.startsWith("OS:")) {
                 this.legion.objectStore.peerSyncs.get(peers[i].remoteID).send(message);
