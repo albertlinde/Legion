@@ -117,26 +117,27 @@ function initService() {
 
     //TODO: well defined security and parameters
     setInterval(function () {
-        var HB = generateMessage("SHB");
-        HB.timestamp = Date.now();
-        HB.validity = Config.signalling.SERVER_HB_VALIDITY;
-        HB.KeyID = authority.getCurrentKey().id;
-        HB.signature = authority.signedMessageDigest("" + HB.timestamp + HB.ID + HB.KeyID + HB.validity);
-        var msg = JSON.stringify(HB);
+        if (nodes.size() > 0) {
+            var HB = generateMessage("SHB");
+            HB.timestamp = Date.now();
+            HB.validity = Config.signalling.SERVER_HB_VALIDITY;
+            HB.KeyID = authority.getCurrentKey().id;
+            HB.signature = authority.signedMessageDigest("" + HB.timestamp + HB.ID + HB.KeyID + HB.validity);
+            var msg = JSON.stringify(HB);
 
-        util.log("HB time: [" + HB.timestamp + "," + (HB.timestamp + HB.validity) + "]");
-        var deadNodes = [];
-        for (var i = 0; i < nodes.size(); i++) {
-            var node = nodes.getNodeByPos(i);
-            if (node.readyState == 1) {
-                console.log("  -> Sending HB to " + node.remoteID);
-                node.send(msg);
-            } else {
-                deadNodes.push(node.remoteID);
+            var deadNodes = [];
+            for (var i = 0; i < nodes.size(); i++) {
+                var node = nodes.getNodeByPos(i);
+                if (node.readyState == 1) {
+                    console.log("  -> Sending HB to " + node.remoteID);
+                    node.send(msg);
+                } else {
+                    deadNodes.push(node.remoteID);
+                }
             }
+            util.log("HB time: [" + HB.timestamp + "," + (HB.timestamp + HB.validity) + "]");
+            nodes.removeAllNodes(deadNodes);
         }
-        nodes.removeAllNodes(deadNodes);
-
     }, Config.signalling.SERVER_HB_INTERVAL);
 
     wss.on('connection', function (socket) {
