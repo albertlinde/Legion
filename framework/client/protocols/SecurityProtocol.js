@@ -92,14 +92,14 @@ SecurityProtocol.prototype.decipher = function (msg, pc, old) {
     ) {
         if (this.log) console.log("MC: First and last.");
     } else {
-        if (msg[0] == '7' && msg[1] == '.') {
-            if (this.log) console.log("MC: First.");
-            this.temp[pc.remoteID] = msg;
-            return true;
-        } else if (msg[msg.length - 4] == "7" && msg[msg.length - 3] == "." && msg[msg.length - 2] == "." && msg[msg.length - 1] == "7") {
+        if (msg[msg.length - 4] == "7" && msg[msg.length - 3] == "." && msg[msg.length - 2] == "." && msg[msg.length - 1] == "7") {
             msg = this.temp[pc.remoteID] + msg;
             this.temp[pc.remoteID] = "";
             if (this.log) console.log("MC: Last.");
+        } else if (msg[0] == '7' && msg[1] == '.') {
+            if (this.log) console.log("MC: First.");
+            this.temp[pc.remoteID] = msg;
+            return true;
         } else {
             if (this.log) console.log("MC: Intermediate.");
             this.temp[pc.remoteID] = this.temp[pc.remoteID] + msg;
@@ -124,6 +124,7 @@ SecurityProtocol.prototype.decipher = function (msg, pc, old) {
     }
 
     var currentKey = this.keys.get(keyID);
+    if (this.log) console.log(currentKey);
     var encr = msg.substring(i + 3, msg.length - 4);
 
     var decipher = forge.cipher.createDecipher('AES-CBC', currentKey.key);
