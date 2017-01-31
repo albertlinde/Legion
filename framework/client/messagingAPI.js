@@ -30,6 +30,9 @@ MessagingAPI.prototype.onMessage = function (connection, message, original) {
         console.log(message.type + " from " + connection.remoteID + " by " + message.s + ".");
     if (!message.destination || (message.destination && message.destination == this.legion.id)) {
         this.deliver(message, original, connection);
+        if (message.p) {
+            this.propagate(message, connection);
+        }
     } else {
         this.propagate(message, original, connection);
     }
@@ -159,6 +162,7 @@ MessagingAPI.prototype.broadcast = function (type, data) {
     var mapi = this;
     //TODO: a way to internally sign messages would be nice
     this.legion.generateMessage(type, data, function (result) {
+        result.p = 1;
         mapi.broadcastMessage(result);
         mapi.deliver({type: type, data: data});
     });
