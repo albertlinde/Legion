@@ -12,8 +12,8 @@ function CliquesOverlay(overlay, legion) {
         so.floodJoin();
     }, 3 * 1000);
 
-    this.legion.messagingAPI.setHandlerFor("Connect", function (message, original, connection) {
-        so.handleJoin(message, original, connection)
+    this.legion.messagingAPI.setHandlerFor("Connect", function (message, connection) {
+        so.handleJoin(message, connection)
     });
 
     this.legion.bullyProtocol.setOnBullyCallback(function (b) {
@@ -70,12 +70,12 @@ CliquesOverlay.prototype.floodJoin = function () {
     });
 };
 
-CliquesOverlay.prototype.handleJoin = function (message, original, connection) {
+CliquesOverlay.prototype.handleJoin = function (message, connection) {
     if (!this.legion.connectionManager.hasPeer(message.s)) {
         this.legion.connectionManager.connectPeer(message.s);
     }
 
     if (connection instanceof PeerConnection && connection.remoteID == message.s) {
-        this.legion.messagingAPI.broadcastMessage(original, [connection]);
+        this.legion.messagingAPI.broadcastMessage(message, [connection]);
     }
 };

@@ -76,7 +76,7 @@ function initService() {
             //The order is, when clients syncs objects are initiated on the server side.
             //Only then can the server sync as this is when he HAS them.
             //Only on PSA will the objects have the client's changes.
-            type: "OS:PS", callback: function (message, original, connection) {
+            type: "OS:PS", callback: function (message, connection) {
                 //util.log("AA1" + JSON.stringify(message));
                 var objects = message.data;
                 for (var i = 0; i < objects.length; i++) {
@@ -88,16 +88,16 @@ function initService() {
             }
         },
         peerSyncAnswer: {
-            type: "OS:PSA", callback: function (message, original, connection) {
+            type: "OS:PSA", callback: function (message, connection) {
                 //util.log("AA2" + JSON.stringify(message));
                 var ps = peerSyncs.get(connection.remoteID);
-                ps.handleSyncAnswer(message, original, connection);
+                ps.handleSyncAnswer(message, connection);
             }
         },
         gotContentFromNetwork: {
-            type: "OS:C", callback: function (message, original, connection) {
+            type: "OS:C", callback: function (message, connection) {
                 //util.log("AA3" + JSON.stringify(message));
-                db.gotContentFromNetwork(message, original, connection);
+                db.gotContentFromNetwork(message, connection);
             }
         }
     };
@@ -139,7 +139,6 @@ function initService() {
 
                     if (!duplicates.contains(parsed.s, parsed.ID)) {
                         duplicates.add(parsed.s, parsed.ID);
-                        var original = JSON.parse(message);
 
                         var cb = function (parsed) {
                             if (parsed.type == "CLIENT_ID") {
@@ -150,11 +149,11 @@ function initService() {
                             }
 
                             if (parsed.type == db.handlers.peerSync.type) {
-                                db.handlers.peerSync.callback(parsed, original, socket);
+                                db.handlers.peerSync.callback(parsed, socket);
                             } else if (parsed.type == db.handlers.peerSyncAnswer.type) {
-                                db.handlers.peerSyncAnswer.callback(parsed, original, socket);
+                                db.handlers.peerSyncAnswer.callback(parsed, socket);
                             } else if (parsed.type == db.handlers.gotContentFromNetwork.type) {
-                                db.handlers.gotContentFromNetwork.callback(parsed, original, socket);
+                                db.handlers.gotContentFromNetwork.callback(parsed, socket);
                             } else {
                                 util.error("Unkown message type.");
                                 util.log(JSON.stringify(parsed));

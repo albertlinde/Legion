@@ -6,14 +6,14 @@ function RandomGraphOverlay(overlay, legion) {
 
     var bo = this;
 
-    this.legion.messagingAPI.setHandlerFor("P2PMeta", function (message, original, connection) {
-        bo.gotP2PMeta(message, original, connection)
+    this.legion.messagingAPI.setHandlerFor("P2PMeta", function (message, connection) {
+        bo.gotP2PMeta(message, connection)
     });
-    this.legion.messagingAPI.setHandlerFor("JoinRequest", function (message, original, connection) {
-        bo.onJoinRequest(message, original, connection)
+    this.legion.messagingAPI.setHandlerFor("JoinRequest", function (message, connection) {
+        bo.onJoinRequest(message, connection)
     });
-    this.legion.messagingAPI.setHandlerFor("JoinAnswer", function (message, original, connection) {
-        bo.onJoinAnswer(message, original, connection)
+    this.legion.messagingAPI.setHandlerFor("JoinAnswer", function (message, connection) {
+        bo.onJoinAnswer(message, connection)
     });
 
     var meta_timeout = function () {
@@ -109,7 +109,7 @@ RandomGraphOverlay.prototype.init = function (contact_node) {
     }
 };
 
-RandomGraphOverlay.prototype.onJoinRequest = function (message, original, connection) {
+RandomGraphOverlay.prototype.onJoinRequest = function (message, connection) {
     if (this.overlay.peers.contains(message.s)) {
         message.TTL--;
         if (message.N > 0 && message.TTL > 0) {
@@ -150,7 +150,7 @@ RandomGraphOverlay.prototype.onJoinRequest = function (message, original, connec
     }
 };
 
-RandomGraphOverlay.prototype.onJoinAnswer = function (message, original, connection) {
+RandomGraphOverlay.prototype.onJoinAnswer = function (message, connection) {
     if (this.overlay.peers.contains(message.s)) {
         //No op.
     } else {
@@ -204,6 +204,6 @@ RandomGraphOverlay.prototype.sendP2PMeta = function () {
     });
 };
 
-RandomGraphOverlay.prototype.gotP2PMeta = function (message, original, connection) {
+RandomGraphOverlay.prototype.gotP2PMeta = function (message, connection) {
     connection.setMeta(message.meta);
 };

@@ -8,7 +8,7 @@ function ServerBully(legion) {
     this.handlers = {
         bully: {
             type: "SHB",
-            callback: function (message, original, connection) {
+            callback: function (message, connection) {
                 if (connection instanceof ServerConnection) {
                     if (sb.amBullied()) {
                         //Have a bully, ServerConnection is probably in cleanup stage.

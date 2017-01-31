@@ -15,22 +15,21 @@ function ServerConnection(server, legion) {
     };
 
     this.socket.onmessage = function (event) {
-        console.log("MS1:" + event.data.length);
-        console.info("MS2:" + event.data);
+        //console.log("MS1:" + event.data.length);
+        //onsole.info("MS2:" + event.data);
         //console.log("MS:" + event.data.length);
         var m = JSON.parse(event.data);
         //console.info("MS:" + event.data);
 
         if (m.auth) {
-            //console.log("Got " + m.auth.currentKey + ".");
+            console.log("Get new key: " + m.auth.currentKey.id + " from " + sc.remoteID + ".");
             legion.secure.gotServerAuthenticationResult(m.auth);
             if (m.auth.result == "Success") {
                 sc.legion.connectionManager.onOpenServer(sc);
             }
         } else {
-            //console.log("Got " + m.type + " from " + sc.remoteID + " s: " + m.s);
-            var original = JSON.parse(event.data);
-            sc.legion.messagingAPI.onMessage(sc, m, original);
+            console.log("Got " + m.type + " from " + sc.remoteID + " s: " + m.s);
+            sc.legion.messagingAPI.onMessage(sc, m);
         }
     };
 

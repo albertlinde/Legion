@@ -172,11 +172,7 @@ CRDT_Database.prototype.getIdentifiers = function () {
     return this.crdts.keys();
 };
 
-CRDT_Database.prototype.gotContentFromNetwork = function (message, original, connection) {
-    console.log(original);
-    if (!original.options)
-        original.options = {};
-    original.options.except = connection;
+CRDT_Database.prototype.gotContentFromNetwork = function (message, connection) {
 
     for (var i = 0; i < message.data.length; i++) {
         //console.info("gcfn", message.data[i]);
@@ -190,7 +186,7 @@ CRDT_Database.prototype.gotContentFromNetwork = function (message, original, con
                     if (crdt.versionVector.get(message.data[i].opID.rID) >= message.data[i].opID.oC)
                         continue;
                 }
-                crdt.deltaOperationFromNetwork(message.data[i], original, connection);
+                crdt.deltaOperationFromNetwork(message.data[i], connection);
             } else {
                 crdt.deltaFromNetwork(message.data[i].fd, connection);
             }

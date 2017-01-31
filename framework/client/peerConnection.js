@@ -33,6 +33,8 @@ function PeerConnection(remoteID, legion) {
     this.keepAliveInterval = setInterval(function () {
         pc.keepAlive()
     }, KEEP_ALIVE_INTERVAL);
+
+    this.log=false;
 }
 
 PeerConnection.prototype.keepAlive = function (force) {
@@ -60,27 +62,29 @@ PeerConnection.prototype.onInitTimeout = function () {
 PeerConnection.prototype.setChannelHandlers = function () {
     var pc = this;
     this.channel.onmessage = function (event) {
-        console.log("M1:" + event.data.length);
+        if (pc.log) console.log("M1:" + event.data.length);
+
         var deciphered = pc.legion.secure.decipher(event.data, pc, event);
         if (!deciphered) {
             console.error("Decipher returned no value.");
+            pc.cancelAll();
+            return;
         }
         if (deciphered === true)return;
         var m = JSON.parse(deciphered);
-        console.info("M2:" + deciphered.length);
-        console.info("M3:" + deciphered);
         if (!m) {
             console.error(deciphered);
             console.error(event.data);
-            console.error(event.data);
+        }
+        if (pc.log) {
+            console.info("M2:" + deciphered.length);
+            console.info("M3:" + deciphered);
         }
         if (m.type == KEEP_ALIVE_MESSAGE.type) {
             pc.lastKeepAlive = Date.now();
             return;
         }
-        //console.log("Got " + m.type + " from " + pc.remoteID + " s: " + m.s);
-        var original = JSON.parse(deciphered);
-        pc.legion.messagingAPI.onMessage(pc, m, original);
+        pc.legion.messagingAPI.onMessage(pc, m);
     };
     this.channel.onopen = function (event) {
         clearTimeout(pc.init_timeout);
@@ -214,7 +218,6 @@ PeerConnection.prototype.getMeta = function () {
  */
 PeerConnection.prototype.sendToSocket = function (string) {
     if (this.channel && this.channel.readyState == "open") {
-        //console.log("Sent " + JSON.parse(message).type + " to " + this.remoteID + " s: " + JSON.parse(message).s);
         this.channel.send(string);
     } else {
         this.close();

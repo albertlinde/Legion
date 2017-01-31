@@ -37,8 +37,8 @@ function ObjectStore(legion) {
             }
         },
         gotContentFromNetwork: {
-            type: "OS:C", callback: function (message, original, connection) {
-                os.gotContentFromNetwork(message, original, connection);
+            type: "OS:C", callback: function (message, connection) {
+                os.gotContentFromNetwork(message, connection);
             }
         }
     };
@@ -88,27 +88,23 @@ ObjectStore.prototype.bullyStatusChange = function () {
     }
 };
 
-ObjectStore.prototype.onMessageFromServer = function (message, original, connection) {
-    //console.log(message)
+ObjectStore.prototype.onMessageFromServer = function (message, connection) {
+    console.log("Got " + message.type + " from " + this.objectServer.peerConnection.remoteID);
     switch (message.type) {
         case (this.handlers.peerSync.type):
-            this.objectServer.handleSync(message, original, connection);
+            this.objectServer.handleSync(message, connection);
             return;
         case (this.handlers.peerSyncAnswer.type):
-            this.objectServer.handleSyncAnswer(message, original, connection);
+            this.objectServer.handleSyncAnswer(message, connection);
             return;
         case (this.handlers.gotContentFromNetwork.type):
-            this.handlers.gotContentFromNetwork.callback(message, original, connection);
+            this.handlers.gotContentFromNetwork.callback(message, connection);
             return;
     }
     console.error("No typedef for: " + message);
 };
 
-ObjectStore.prototype.gotContentFromNetwork = function (message, original, connection) {
-    if (!original.options)
-        original.options = {};
-    original.options.except = connection;
-
+ObjectStore.prototype.gotContentFromNetwork = function (message, connection) {
     for (var i = 0; i < message.data.length; i++) {
         //console.info("gcfn", message.data[i], connection);
         var objectID = message.data[i].objectID;
@@ -124,7 +120,7 @@ ObjectStore.prototype.gotContentFromNetwork = function (message, original, conne
                     if (crdt.versionVector.get(message.data[i].opID.rID) >= message.data[i].opID.oC)
                         continue;
                 }
-                crdt.deltaOperationFromNetwork(message.data[i], original, connection);
+                crdt.deltaOperationFromNetwork(message.data[i], connection);
             } else {
                 var ret = crdt.deltaFromNetwork(message.data[i].fd, connection);
             }

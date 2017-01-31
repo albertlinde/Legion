@@ -22,17 +22,17 @@ function GeoOptimizedOverlay(overlay, legion) {
     this.options = this.legion.options.overlayProtocol.parameters;
 
     var instance = this;
-    this.legion.messagingAPI.setHandlerFor(ConnectRequest, function (message, original, connection) {
-        instance.handleConnectRequest(message, original, connection)
+    this.legion.messagingAPI.setHandlerFor(ConnectRequest, function (message, connection) {
+        instance.handleConnectRequest(message, connection)
     });
-    this.legion.messagingAPI.setHandlerFor(LocalRandomWalk, function (message, original, connection) {
-        instance.handleLocalRandomWalk(message, original, connection)
+    this.legion.messagingAPI.setHandlerFor(LocalRandomWalk, function (message, connection) {
+        instance.handleLocalRandomWalk(message, connection)
     });
-    this.legion.messagingAPI.setHandlerFor(FarRandomWalk, function (message, original, connection) {
-        instance.handleFarRandomWalk(message, original, connection)
+    this.legion.messagingAPI.setHandlerFor(FarRandomWalk, function (message, connection) {
+        instance.handleFarRandomWalk(message, connection)
     });
-    this.legion.messagingAPI.setHandlerFor(DistancesUpdate, function (message, original, connection) {
-        instance.handleDistancesUpdate(message, original, connection)
+    this.legion.messagingAPI.setHandlerFor(DistancesUpdate, function (message, connection) {
+        instance.handleDistancesUpdate(message, connection)
     });
 
     this.legion.bullyProtocol.setOnBullyCallback(function () {
@@ -80,10 +80,8 @@ function GeoOptimizedOverlay(overlay, legion) {
     this.TimesLocalCheckNoConnections = 0;
 }
 
-GeoOptimizedOverlay.prototype.handleConnectRequest = function (message, original, connection) {
+GeoOptimizedOverlay.prototype.handleConnectRequest = function (message, connection) {
     if (this.first)return;
-    //console.log(original);
-    //console.log(message);
 
     if (!this.overlay.hasPeer(message.s)) {
         var actualDist = distanceFunction(this.distances, message.data.distances);
@@ -105,7 +103,7 @@ GeoOptimizedOverlay.prototype.handleConnectRequest = function (message, original
     }
 };
 
-GeoOptimizedOverlay.prototype.handleLocalRandomWalk = function (message, original, connection) {
+GeoOptimizedOverlay.prototype.handleLocalRandomWalk = function (message, connection) {
     //console.log(message);
     message.data.TTL--;
     if (message.data.TTL > 0) {
@@ -148,7 +146,7 @@ GeoOptimizedOverlay.prototype.handleLocalRandomWalk = function (message, origina
     }
 };
 
-GeoOptimizedOverlay.prototype.handleFarRandomWalk = function (message, original, connection) {
+GeoOptimizedOverlay.prototype.handleFarRandomWalk = function (message, connection) {
     message.data.TTL--;
     if (message.data.TTL > 0) {
         if (this.activeCloseNodes.length > 0) {
@@ -182,7 +180,7 @@ GeoOptimizedOverlay.prototype.handleFarRandomWalk = function (message, original,
     }
 };
 
-GeoOptimizedOverlay.prototype.handleDistancesUpdate = function (message, original, peerConnection) {
+GeoOptimizedOverlay.prototype.handleDistancesUpdate = function (message, peerConnection) {
 
     var actualDist = distanceFunction(this.distances, message.data.distances);
 

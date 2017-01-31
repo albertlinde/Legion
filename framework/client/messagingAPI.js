@@ -12,10 +12,8 @@ function MessagingAPI(legion) {
  * Handles message reception.
  * @param connection {PeerConnection,ServerConnection}
  * @param message {Object}
- * @param original {Object}
  */
-MessagingAPI.prototype.onMessage = function (connection, message, original) {
-    console.info(original);
+MessagingAPI.prototype.onMessage = function (connection, message) {
     if (message.type != this.legion.bullyProtocol.handlers.bully.type) {
         if (!this.duplicates.contains(message.s, message.ID)) {
             this.duplicates.add(message.s, message.ID)
@@ -29,29 +27,28 @@ MessagingAPI.prototype.onMessage = function (connection, message, original) {
     else
         console.log(message.type + " from " + connection.remoteID + " by " + message.s + ".");
     if (!message.destination || (message.destination && message.destination == this.legion.id)) {
-        this.deliver(message, original, connection);
+        this.deliver(message, connection);
         if (message.p) {
             this.propagate(message, connection);
         }
     } else {
-        this.propagate(message, original, connection);
+        this.propagate(message, connection);
     }
 };
 
 
-MessagingAPI.prototype.propagate = function (message, original, connection) {
-    this.broadcastMessage(original, [connection.remoteID]);
+MessagingAPI.prototype.propagate = function (message, connection) {
+    this.broadcastMessage(message, [connection.remoteID]);
 };
 
 /**
  * Used by legion to deliver received messages to Legion or the application.
  * @param message
- * @param original
  * @param connection
  */
-MessagingAPI.prototype.deliver = function (message, original, connection) {
+MessagingAPI.prototype.deliver = function (message, connection) {
     if (this.callbacks.contains(message.type)) {
-        this.callbacks.get(message.type)(message, original, connection);
+        this.callbacks.get(message.type)(message, connection);
     } else {
         console.warn("can't deliver: no handler defined", JSON.stringify(message));
     }

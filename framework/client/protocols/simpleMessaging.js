@@ -3,10 +3,10 @@ function FloodMessaging(api, legion) {
     this.legion = legion;
 }
 
-FloodMessaging.prototype.onMessage = function (connection, message, original) {
+FloodMessaging.prototype.onMessage = function (connection, message) {
     if (!message.destination || (message.destination && message.destination != this.legion.id)) {
         if (connection instanceof PeerConnection)
-            this.broadcastMessage(original, [connection]);
+            this.broadcastMessage(message, [connection]);
         else {
             if (debug)
                 console.log("Not broadcasting: " + message.type, this.legion.id, message.s)

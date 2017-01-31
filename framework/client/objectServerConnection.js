@@ -21,12 +21,10 @@ function ObjectServerConnection(server, objectStore, legion) {
     };
 
     this.socket.onmessage = function (event) {
-        console.log("MO1:" + event.data.length);
-        console.info("MO2:" + event.data);
+        //console.log("MO1:" + event.data.length);
+        //console.info("MO2:" + event.data);
         var m = JSON.parse(event.data);
-        //console.log("Got " + m.type + " from " + sc.remoteID + " s: " + m.s);
-        var original = JSON.parse(event.data);
-        sc.objectStore.onMessageFromServer(m, original, sc);
+        sc.objectStore.onMessageFromServer(m, sc);
     };
 
     this.socket.onclose = function () {

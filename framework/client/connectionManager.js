@@ -6,14 +6,14 @@ function ConnectionManager(legion) {
 
     var cm = this;
     //TODO: the following strings are defined where?
-    this.legion.messagingAPI.setHandlerFor("C:OA", function (message, original) {
-        cm.handleSignalling(message, original)
+    this.legion.messagingAPI.setHandlerFor("C:OA", function (message) {
+        cm.handleSignalling(message)
     });
-    this.legion.messagingAPI.setHandlerFor("C:OR", function (message, original) {
-        cm.handleSignalling(message, original)
+    this.legion.messagingAPI.setHandlerFor("C:OR", function (message) {
+        cm.handleSignalling(message)
     });
-    this.legion.messagingAPI.setHandlerFor("C:I", function (message, original) {
-        cm.handleSignalling(message, original)
+    this.legion.messagingAPI.setHandlerFor("C:I", function (message) {
+        cm.handleSignalling(message)
     });
 
     this.isStartingserverConnection = false;
@@ -68,11 +68,11 @@ ConnectionManager.prototype.connectPeerRemote = function (message) {
     }
 };
 
-ConnectionManager.prototype.handleSignalling = function (message, original) {
+ConnectionManager.prototype.handleSignalling = function (message) {
     //TODO: again, this isn't well defined.
     //TODO: message.unique is not explained anywhere.
     if (message.destination != this.legion.id) {
-        this.legion.messagingAPI.broadcastMessage(original);
+        this.legion.messagingAPI.broadcastMessage(message);
     } else {
         if (message.type == "C:OA") {
             this.connectPeerRemote(message);

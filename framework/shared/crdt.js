@@ -134,7 +134,7 @@ CRDT.prototype.setOnStateChange = function (callback) {
     this.callback = callback;
 };
 
-CRDT.prototype.deltaOperationFromNetwork = function (deltaOperation, original, connection) {
+CRDT.prototype.deltaOperationFromNetwork = function (deltaOperation, connection) {
     var remote_ret = this.remotes[deltaOperation.key].apply(this, [deltaOperation.arg]);
     this.addOpToCurrentVersionVector(deltaOperation.opID);
     this.objectStore.propagate(this.objectID, deltaOperation.opID, deltaOperation.arg, deltaOperation.versionVector, deltaOperation.key, connection, this.crdt.type);
