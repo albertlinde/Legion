@@ -92,12 +92,8 @@ GDriveRTSignallingServerConnection.prototype.initOverlay = function () {
         for (var i = 0; i < m_list.length; i++) {
             (function (i) {
                 console.info(m_list[i]);
-                decompress(m_list[i].compressed, function (result) {
-                    var message = m_list[i];
-                    message.data = JSON.parse(result);
-
-                    sc.legion.messagingAPI.onMessage(sc, message, m_list[i]);
-                });
+                var message = m_list[i];
+                sc.legion.messagingAPI.onMessage(sc, message);
             })(i);
         }
     });
@@ -135,12 +131,8 @@ GDriveRTSignallingServerConnection.prototype.isAlive = function () {
 
 GDriveRTSignallingServerConnection.prototype.send = function (message) {
     console.info("GDriveRTSignallingServerConnection:send", message.type);
-    var sc = this;
     if (this.isAlive()) {
-        decompress(message.compressed, function (result) {
-            message.data = JSON.parse(result);
-            sc.gotSomethingtoSend(message);
-        });
+        this.gotSomethingtoSend(message);
     } else {
         console.error("Not alive and still sending.");
     }
@@ -148,7 +140,7 @@ GDriveRTSignallingServerConnection.prototype.send = function (message) {
 
 GDriveRTSignallingServerConnection.prototype.gotSomethingtoSend = function (message) {
     switch (message.type) {
-        case "ConnectRequest":
+        case "CR":
             this.distances = message.data.distances;
             this.Dmap.set(this.legion.id, message.data.distances);
             var data = message.data;
@@ -184,7 +176,7 @@ GDriveRTSignallingServerConnection.prototype.gotSomethingtoSend = function (mess
                 }
             }
             break;
-        case "DistancesUpdate":
+        case "DU":
             this.distances = message.data.distances;
             this.Dmap.set(this.legion.id, message.data.distances);
             break;

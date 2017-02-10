@@ -180,11 +180,13 @@ GapiObjectHandler.prototype.addEventListener = function (event, callback) {
             this.object.setOnStateChange(function (updates, meta) {
                 var ret = {};
 
-                console.log("VALUE_CHANGED: " + JSON.stringify(updates) + " " + JSON.stringify(meta));
-
                 if (updates.set) {
                     ret.property = updates.set.key;
-                    ret.newValue = JSON.parse(updates.set.value);
+                    try {
+                        ret.newValue = JSON.parse(updates.set.value);
+                    } catch (e){
+                        ret.newValue = updates.set.value;
+                    }
                 }
 
                 goi.callback(ret);

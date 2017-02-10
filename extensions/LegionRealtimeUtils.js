@@ -51,7 +51,7 @@ function LegionRealtimeUtils(realtimeUtils) {
         FileID_KeyList: "FileID_KeyList",
         objectsMap: "RootMap",
         WAIT_ON_MAP_INIT: 20 * 1000,
-        WAIT_ON_MAP_INIT_LEGION_ONLY: 7 * 1000
+        WAIT_ON_MAP_INIT_LEGION_ONLY: 10 * 1000
     };
 
 
@@ -142,8 +142,8 @@ LegionRealtimeUtils.prototype.gotOverlayFile = function (onLoad) {
             type: GeoOptimizedOverlay,
             parameters: {
                 locator: HTTPPinger,
-                //locations: ["https://ec2.us-east-1.amazonaws.com", "https://ec2.us-east-2.amazonaws.com", "https://ec2.us-west-1.amazonaws.com", "https://ec2.us-west-2.amazonaws.com"],
-                locations: ["https://www.google.com"],
+                locations: ["https://www.google.com", "https://di.fct.unl.pt"],
+                //locations: ["https://www.google.com"],
                 MIN_CLOSE_NODES: 3,
                 MAX_CLOSE_NODES: 5,
                 MIN_FAR_NODES: 1,
@@ -155,14 +155,14 @@ LegionRealtimeUtils.prototype.gotOverlayFile = function (onLoad) {
         },
         messagingProtocol: FloodMessaging,
         objectOptions: {
-            serverInterval: 15000 + Math.ceil(Math.random() * 15000),
-            peerInterval: 10
+            serverInterval: 250 + Math.ceil(Math.random() * 1000),
+            peerInterval: 30
         },
         bullyProtocol: {
             type: bullyProtocol,
             options: {
-                bullyMustHaveInterval: 21 * 1000,
-                bullySendInterval: 7 * 1000,
+                bullyMustHaveInterval: 51 * 1000,
+                bullySendInterval: 15 * 1000,
                 bullyStartTime: 2 * 1000
             }
         },
@@ -198,7 +198,7 @@ LegionRealtimeUtils.prototype.gotMap = function (onLoad) {
 
     var keys = this.map.keys();
     if (keys.length == 0) {
-        //console.log("Waiting on map init.");
+        console.log("Waiting on map init.");
         setTimeout(function () {
             lru.gotMap(onLoad);
         }, this.constants.WAIT_ON_MAP_INIT);
@@ -253,13 +253,13 @@ LegionRealtimeUtils.prototype.startObjectsProtocol = function (onLoad, doAgain) 
         } else {
             var keys = rootMap.keys();
             if (keys.length == 0) {
-                //console.log("Got an empty RootMap.");
+                console.log("Got an empty RootMap.");
                 setTimeout(function () {
                     lru.startObjectsProtocol(onLoad, true);
                 }, lru.constants.WAIT_ON_MAP_INIT);
             } else {
                 lru.ready = true;
-                //console.log("Got a filled RootMap.");
+                console.log("Got a filled RootMap.");
                 lru.gotMap(onLoad);
                 //TODO: merge to legacy timer.
             }
@@ -269,7 +269,7 @@ LegionRealtimeUtils.prototype.startObjectsProtocol = function (onLoad, doAgain) 
         var lru = this;
         var keys = rootMap.keys();
         if (keys.length == 0) {
-            //console.log("Got an empty RootMap.");
+            console.log("Got an empty RootMap.");
             if (this.FileID_Objects) {
                 this.ready = true;
                 setTimeout(function () {
@@ -284,7 +284,7 @@ LegionRealtimeUtils.prototype.startObjectsProtocol = function (onLoad, doAgain) 
                                     lru.startObjectsProtocol(onLoad);
                                 });
                             } else {
-                                //console.log("I am not the main bully, waiting.");
+                                console.log("I am not the main bully, waiting.");
                                 setTimeout(function () {
                                     lru.startObjectsProtocol(onLoad);
                                 }, lru.constants.WAIT_ON_MAP_INIT);
@@ -298,7 +298,7 @@ LegionRealtimeUtils.prototype.startObjectsProtocol = function (onLoad, doAgain) 
             }
         } else {
             this.ready = true;
-            //console.log("Got a filled RootMap.");
+            console.log("Got a filled RootMap.");
             this.gotMap(onLoad);
             if (lru.merge_to_legacy) {
                 setInterval(function () {
@@ -310,7 +310,7 @@ LegionRealtimeUtils.prototype.startObjectsProtocol = function (onLoad, doAgain) 
                             //console.log("Won't to write to Merge and Original file.");
                         }
                     });
-                }, 30 * 1000);
+                }, 5 * 1000);
             }
         }
     }
@@ -638,7 +638,7 @@ LegionRealtimeUtils.prototype.createObjectsFile = function (callback) {
                 var delta = rootMap.getDelta([], {a: [], r: []});
                 var meta = rootMap.getMeta();
                 var vv = rootMap.versionVector.toJSONString();
-                var flattened = {delta: delta, vv: vv, m: meta};
+                var flattened = {d: delta, vv: vv, m: meta};
 
                 list.insert(0, flattened);
 
@@ -657,7 +657,7 @@ LegionRealtimeUtils.prototype.createObjectsFile = function (callback) {
                         var delta = crdt.getDelta([], {a: [], r: []});
                         var meta = crdt.getMeta();
                         var vv = crdt.versionVector.toJSONString();
-                        var flattened = {delta: delta, vv: vv, m: meta};
+                        var flattened = {d: delta, vv: vv, m: meta};
 
                         list.insert(0, flattened);
 
