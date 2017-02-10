@@ -461,11 +461,11 @@
     var list = objectStore.get("listID", legion.List);
 
     list.add(pos, element);        //Adds an element to given position
-    list.remove(pos);              //Removes current element at given position
+    list.delete(pos);              //Removes current element at given position
     list.get(pos)                  //Returns  the element at given position
 
     console.log(list.asArray());   //Array of elements
-    console.log(list.length());    //Number
+    console.log(list.size());      //Number
     list.setOnStateChange(function (updates, meta) {//called when data is updated
         console.log(updates);
         console.log(meta);
