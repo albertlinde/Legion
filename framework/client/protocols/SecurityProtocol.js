@@ -15,20 +15,34 @@ function SecurityProtocol(legion) {
     this.log = false;
 }
 
-SecurityProtocol.prototype.gotServerAuthenticationResult = function (result) {
+SecurityProtocol.prototype.gotServerAuthenticationResult = function (result, connection) {
     //console.log(result);
-    if (result.result == "Success") {
-        this.keys.set(result.currentKey.id, result.currentKey);
-        this.currKey = result.currentKey.id;
-        this.serverPublicKey = forge.pki.publicKeyFromAsn1(result.serverPublicKey);
+    if (result.result == "Success" && !(connection instanceof PeerConnection)) {
+        if (!this.legion.id) {
+            this.legion.id = result.nodeID;
+            console.log("Got new nodeID: " + result.nodeID);
+        } else {
+            if (this.legion.id != result.nodeID) {
+                console.error("Got new nodeID: " + result.nodeID);
+                result.result = "No local success!";
+                return;
+            }
+        }
 
-        //TODO: the following creates infinicle if key changes twice in a small timespan.
-        while (!this.queue.isEmpty) {
-            var a = this.queue.removeFirst();
-            a.pc.channel.onmessage({data: a.msg});
+        if (!this.keys.contains(result.currentKey.id)) {
+            console.log("Got new key: " + result.currentKey.id + " from " + connection.remoteID + ".");
+            this.keys.set(result.currentKey.id, result.currentKey);
+            this.currKey = result.currentKey.id;
+            this.serverPublicKey = forge.pki.publicKeyFromAsn1(result.serverPublicKey);
+
+            //TODO: the following creates infinicle if key changes twice in a small timespan.
+            while (!this.queue.isEmpty) {
+                var a = this.queue.removeFirst();
+                a.pc.channel.onmessage({data: a.msg});
+            }
         }
     } else {
-        console.error("Security check failed.");
+        console.error("Security check failed on server.");
     }
 };
 
@@ -36,8 +50,11 @@ SecurityProtocol.prototype.gotServerAuthenticationResult = function (result) {
 SecurityProtocol.prototype.getServerAuthenticationChallenge = function () {
     var c = {};
     c.type = "Auth";
-    c.client_id = this.legion.id;
-    c.clientChallenge = this.legion.id;
+    c.client = this.legion.client;
+    c.group = this.legion.group;
+    if (this.legion.id) {
+        c.nodeID = this.legion.id;
+    }
     return JSON.stringify(c);
 };
 

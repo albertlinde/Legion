@@ -6,8 +6,11 @@ function Legion(options) {
     this.joined = false;
     this.onJoinCallback = null;
 
-    if (!options.clientID) {
-        options.clientID = this.randInt(5);
+    if (!options.client) {
+        options.client = {id: this.randInt(5), secret: this.randInt(5)};
+    }
+    if (!options.group) {
+        options.group = {id: "default", secret: "default"};
     }
     if (!options.overlayProtocol) {
         options.overlayProtocol = {
@@ -70,7 +73,7 @@ function Legion(options) {
     }
 
     this.messageCount = this.randInt(5);
-    this.id = this.options.clientID;
+    this.id = null;
 
     this.messagingAPI = new MessagingAPI(this);
     if (this.options.bullyProtocol)
@@ -79,7 +82,8 @@ function Legion(options) {
     this.connectionManager = new ConnectionManager(this);
     this.objectStore = new ObjectStore(this);
 
-
+    this.group = options.group;
+    this.client = options.client;
 }
 /**
  * Joins the overlay.

@@ -1,6 +1,7 @@
 var ALMap = require('./../shared/ALMap.js').ALMap;
 var forge = require('node-forge');
 var util = require('util');
+var Config = require('./config.js');
 
 exports.AuthServer = AuthServer;
 
@@ -14,12 +15,16 @@ function AuthServer(credentials) {
 
     this.keys = new ALMap();
     //TODO: ids of keys can't start at 1 every time the server is re-booted!
+    //TODO: nice way to force new key!
     this.keys.set(1, this.newKey(1));
-    var ass = this;
-    /*setInterval(function () {
-        var nkid = ass.getCurrentKey().id + 1;
-        ass.keys.set(nkid, ass.newKey(nkid));
-    }, 25 * 1000);*/
+    /*
+     var ass = this;
+     setInterval(function () {
+     var nkid = ass.getCurrentKey().id + 1;
+     ass.keys.set(nkid, ass.newKey(nkid));
+     }, 25 * 1000);*/
+    this.clientCheck = Config.clientCheck;
+    this.groupCheck = Config.groupCheck;
 }
 
 AuthServer.prototype.getCurrentKey = function () {
@@ -40,28 +45,42 @@ AuthServer.prototype.newKey = function (keyID) {
     return key;
 };
 
-AuthServer.prototype.clientCheck = function (client_id) {
-    //TODO: programmer-defined. the id alone is not enough
-    return true;
-    return parseInt(client_id) > 0 && parseInt(client_id) < 10;
+AuthServer.prototype.getNewNodeID = function (clientID, group, nodeID) {
+    if (nodeID) {
+        return nodeID;
+    } else {
+        return this.randInt(5);
+    }
 };
 
+/**
+ * @param c
+ * @returns {{auth: {}}}
+ */
 AuthServer.prototype.verify = function (c) {
-    //TODO: see (clientCheck)
     var ret = {auth: {}};
-
-    if (c.type != "Auth" || c.client_id != c.clientChallenge || !this.clientCheck(c.client_id))
+    if (c.type != "Auth" || !this.clientCheck(c.client) || !this.groupCheck(c.client, c.group))
         ret.result = "Failed";
     else {
         ret.auth.result = "Success";
         ret.auth.currentKey = this.getCurrentKey();
         ret.auth.serverPublicKey = this.publicKeyString;
+        ret.auth.nodeID = this.getNewNodeID(c.client, c.group, c.nodeID);
     }
     return ret;
 };
+
 AuthServer.prototype.signedMessageDigest = function (string) {
     var md = forge.md.sha256.create();
     md.update(string);
     return this.privateKey.sign(md);
 };
 
+/**
+ * Returns a random integer.
+ * @returns {number}
+ */
+AuthServer.prototype.randInt = function (N) {
+    //TODO: why is this here?
+    return Math.floor((Math.random() * Number.MAX_VALUE) % (Math.pow(10, N)));
+};

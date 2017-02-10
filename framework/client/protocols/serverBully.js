@@ -14,7 +14,7 @@ function ServerBully(legion) {
                         //Have a bully, ServerConnection is probably in cleanup stage.
                         console.log("Got SHB from server but am bullied by " + sb.bully);
                     } else {
-                        //console.log("Got SHB from server.");
+                        console.log("Got SHB from server.");
                         sb.lastSHB = message;
                         sb.bully = (sb.legion.id).toString();
                         sb.bullied();
@@ -26,7 +26,7 @@ function ServerBully(legion) {
                     }
                 } else {
                     if (sb.legion.secure.verifySHB(message)) {
-                        //console.log("Got SHB from peer: " + connection.remoteID);
+                        console.log("Got SHB from peer: " + connection.remoteID);
                         var hisID = connection.remoteID;
                         if (hisID <= sb.bully) {
                             sb.lastSHB = message;
@@ -50,8 +50,9 @@ function ServerBully(legion) {
             }
         }
     };
-
-    this.bully = (this.legion.id).toString();
+    if (this.legion.id) {
+        this.bully = (this.legion.id).toString();
+    }
     this.legion.messagingAPI.setHandlerFor(this.handlers.bully.type, this.handlers.bully.callback);
     this.callbacks = [];
 }
@@ -114,6 +115,11 @@ ServerBully.prototype.onClientDisconnect = function (peerConnection) {
 };
 
 ServerBully.prototype.onServerConnection = function (serverConnection) {
+    if (!this.bully) {
+        if (this.legion.id) {
+            this.bully = (this.legion.id).toString();
+        }
+    }
     //No op.
 };
 
@@ -128,6 +134,7 @@ ServerBully.prototype.onServerDisconnect = function (serverConnection) {
  * @returns {boolean}
  */
 ServerBully.prototype.amBullied = function () {
+    if (!this.legion.id) return false;
     if (this.bully == (this.legion.id).toString() || this.bully == "TEMP_ID" || !this.lastSHB)
         return false;
     var time = (Date.now()) - (this.lastSHB.timestamp + this.lastSHB.validity);

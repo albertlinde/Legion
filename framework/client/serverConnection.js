@@ -22,10 +22,11 @@ function ServerConnection(server, legion) {
         //console.info("MS:" + event.data);
 
         if (m.auth) {
-            console.log("Get new key: " + m.auth.currentKey.id + " from " + sc.remoteID + ".");
-            legion.secure.gotServerAuthenticationResult(m.auth);
+            legion.secure.gotServerAuthenticationResult(m.auth, sc);
             if (m.auth.result == "Success") {
                 sc.legion.connectionManager.onOpenServer(sc);
+            } else {
+                console.error("Not implemented: error on auth.", m.auth);
             }
         } else {
             console.log("Got " + m.type + " from " + sc.remoteID + " s: " + m.s);

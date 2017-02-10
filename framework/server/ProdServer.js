@@ -13,7 +13,6 @@ var privateKey = fs.readFileSync(Config.signalling.key);
 var certificate = fs.readFileSync(Config.signalling.cert);
 var publicKey = fs.readFileSync(Config.signalling.public_key);
 
-
 var credentials = {key: privateKey, cert: certificate, publicKey: publicKey};
 
 var app = express();
@@ -28,22 +27,22 @@ var httpServer = http.createServer(httpApp);
 var httpsServer = https.createServer(credentials, app);
 
 app.use(function log(req, res, next) {
-    console.log([req.method, req.url].join(' '));
+    util.log([req.method, req.url].join(' '));
     next();
 });
 
 app.use(function (req, res, next) {
     if (!req.secure) {
-        console.log("- - SECURITY ISSUE: " + req.secure);
-        console.log(JSON.stringify(req.headers));
-        console.log("- - SECURITY END");
+        util.log("- - SECURITY ISSUE: " + req.secure);
+        util.log(JSON.stringify(req.headers));
+        util.log("- - SECURITY END");
         res.end();
     }
     next();
 });
 
 app.get('/', function (req, res, next) {
-    console.log("Got index.html");
+    util.log("Got index.html");
     res.sendFile(path.resolve('./../../applications/examples/index.html'));
 });
 
@@ -62,24 +61,24 @@ var WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({
     server: httpsServer,
     verifyClient: function (info, cb) {
-        console.log("Verify Origin: " + "(HTTP" + info.req.httpVersion + "-" + info.req.method + ") " + info.origin + info.req.url);
-        console.log("Verify Secure: " + (info.secure && info.req.upgrade));
-        console.log("Verify Agent: " + info.req.headers["user-agent"]);
+        util.log("Verify Origin: " + "(HTTP" + info.req.httpVersion + "-" + info.req.method + ") " + info.origin + info.req.url);
+        util.log("Verify Secure: " + (info.secure && info.req.upgrade));
+        util.log("Verify Agent: " + info.req.headers["user-agent"]);
         cb(true);
     }
 });
 
 httpApp.get("*", function (req, res, next) {
-    console.log("Redirecting " + req.headers.host + req.path + " to HTTPS.");
+    util.log("Redirecting " + req.headers.host + req.path + " to HTTPS.");
     res.redirect("https://" + req.headers.host + req.path);
 });
 
 httpServer.listen(http_port, function () {
-    console.log('HTTP listening on ' + httpServer.address().port);
+    util.log('HTTP listening on ' + httpServer.address().port);
 });
 
 httpsServer.listen(https_port, function () {
-    console.log('HTTPS listening on ' + httpsServer.address().port)
+    util.log('HTTPS listening on ' + httpsServer.address().port)
 });
 
 var Duplicates = require('./../shared/Duplicates.js').Duplicates;
@@ -128,8 +127,8 @@ function initService() {
             var deadNodes = [];
             for (var i = 0; i < nodes.size(); i++) {
                 var node = nodes.getNodeByPos(i);
-                if (node.readyState == 1) {
-                    console.log("  -> Sending HB to " + node.remoteID);
+                if (node.readyState == 1) {//TODO: fails here "'readyState' of undefined".
+                    util.log("  -> Sending HB to " + node.remoteID);
                     node.send(msg);
                 } else {
                     deadNodes.push(node.remoteID);
@@ -147,25 +146,29 @@ function initService() {
                     //util.log(message);
                     //TODO: try catch on parse.
                     var parsed = JSON.parse(message);
-                    //console.log(parsed);
+                    //util.log(parsed);
                     if (parsed.type == "Auth") {
                         if (!socket.remoteID) {
-                            if (nodes.contains(parsed.client_id)) {
-                                util.log("Reconnected with new socket " + parsed.client_id + ". Old was: " + socket.remoteID);
+                            var auth = authority.verify(parsed);
+                            util.log("Got Auth from " + JSON.stringify(parsed.client));
+                            util.log("   Group: -> " + JSON.stringify(parsed.group));
+                            util.log("   -> Sending back auth response: " + JSON.stringify(auth.auth.result));
+                            socket.send(JSON.stringify(auth));
+                            if (auth.auth.result == "Failed") {
+                                socket.close();
                             } else {
-                                util.log("Connected " + parsed.client_id);
+                                if (parsed.nodeID) {
+                                    if (socket.remoteID) {
+                                        util.log("Reconnected with new socket " + parsed.nodeID + ". Old was: " + socket.remoteID);
+                                    } else {
+                                        util.log("Reconnected " + parsed.nodeID + ".");
+                                    }
+                                } else {
+                                    util.log("Connected as " + auth.auth.nodeID);
+                                }
+                                socket.remoteID = auth.auth.nodeID;
+                                nodes.addNode(parsed.group, auth.auth.nodeID, socket);
                             }
-                            socket.remoteID = parsed.client_id;
-                            nodes.addNode(parsed.client_id, socket);
-                        }
-
-                        //TODO: again, define security.
-                        var auth = authority.verify(parsed);
-                        util.log("Got Auth from " + parsed.client_id);
-                        console.log("   -> Sending back auth response: " + JSON.stringify(auth.auth.result));
-                        socket.send(JSON.stringify(auth));
-                        if (auth.auth.result == "Failed") {
-                            socket.close();
                         }
                     }
                     else if (parsed.type == "CR") {
@@ -193,7 +196,7 @@ function initService() {
 
                         for (var i = start; end > 0;) {
                             var node = nodes.getNodeByPos(i);
-                            console.log("  -> Checking  node " + node.remoteID + " from " + i + " [" + start + "," + end + "]");
+                            util.log("  -> Checking  node " + node.remoteID + " from " + i + " [" + start + "," + end + "]");
 
                             if (node === socket) {
                                 //don't send back.
@@ -201,17 +204,17 @@ function initService() {
                                 if (node.readyState == 1) {
                                     if (node.distances) {
                                         var actualDistance = distanceFunction(node.distances, data.distances);
-                                        console.log("    -> distance:" + actualDistance, node.distances, data.distances);
+                                        util.log("    -> distance:" + actualDistance, node.distances, data.distances);
 
                                         if (actualDistance <= 1 && !doneClose) {
-                                            console.log("      -> Sending to close node " + node.remoteID);
+                                            util.log("      -> Sending to close node " + node.remoteID);
                                             node.send(message);
                                             sent = true;
                                             doneClose = true;
                                         }
 
                                         if (actualDistance > 1 && !doneFar) {
-                                            console.log("      -> Sending to far node " + node.remoteID);
+                                            util.log("      -> Sending to far node " + node.remoteID);
                                             node.send(message);
                                             sent = true;
                                             doneFar = true;
@@ -232,7 +235,7 @@ function initService() {
                             }
                         }
                         if (!sent) {
-                            console.log("  -> No suitable nodes found.");
+                            util.log("  -> No suitable nodes found.");
                         }
                         if (deadNodes.length > 0) {
                             util.log("Removed nodes: " + deadNodes);
@@ -241,18 +244,19 @@ function initService() {
 
                     }
                     else if (parsed.type == "LRW") {
-                        console.log("ERROR!!!");
-                        console.log(message);
-                        console.log("ERROR!!!");
+                        //TODO CRITICAL! we get in here!
+                        util.log("ERROR!!!");
+                        util.log(message);
+                        util.log("ERROR!!!");
                     }
                     else if (parsed.type == "FRW") {
-                        console.log("ERROR!!!");
-                        console.log(message);
-                        console.log("ERROR!!!");
+                        util.log("ERROR!!!");
+                        util.log(message);
+                        util.log("ERROR!!!");
                     }
                     else if (parsed.type == "DU") {
                         socket.distances = parsed.data.distances;
-                        console.log("Updated distances for peer " + socket.remoteID + ":" + socket.distances)
+                        util.log("Updated distances for peer " + socket.remoteID + ":" + socket.distances)
                     } else {
                         if (!duplicates.contains(parsed.s, parsed.ID)) {
                             duplicates.add(parsed.s, parsed.ID);
@@ -262,7 +266,7 @@ function initService() {
                                 var node = nodes.getNode(parsed.destination);
                                 if (node && node.readyState == 1) {
                                     util.log("Destination message: " + parsed.type);
-                                    console.log("   -> Sending to " + parsed.destination);
+                                    util.log("   -> Sending to " + parsed.destination);
                                     node.send(message);
                                     return;
                                 }
@@ -284,7 +288,7 @@ function initService() {
                                 if (node.remoteID == parsed.s)continue;
 
                                 if (node.readyState == 1) {
-                                    console.log("   -> Sending to " + node.remoteID);
+                                    util.log("   -> Sending to " + node.remoteID);
                                     node.send(message);
                                 } else {
                                     deadNodes.push(node.remoteID);
@@ -327,7 +331,8 @@ NodesStructure.prototype.getNodeByPos = function (pos) {
     return this.nodesMap[this.keys[pos]];
 };
 
-NodesStructure.prototype.addNode = function (id, socket) {
+//TODO: use group.
+NodesStructure.prototype.addNode = function (group, id, socket) {
     if (!this.contains(id))
         this.count++;
     this.nodesMap[id] = socket;
