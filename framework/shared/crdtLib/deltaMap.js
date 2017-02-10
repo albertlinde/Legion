@@ -54,6 +54,16 @@ var delta_orMap = {
             return ret;
         },
         operations: {
+            size: {
+                local: function () {
+                    return {
+                        toInterface: this.state.elements.size(),
+                        toNetwork: null
+                    };
+                }, remote: function () {
+                    //never called.
+                }
+            },
             contains: {
                 local: function (element) {
                     var toInterface = false;
