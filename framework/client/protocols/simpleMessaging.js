@@ -82,9 +82,14 @@ FloodMessaging.prototype.broadcastMessage = function (message, except, useFanout
     }
     var server = this.legion.connectionManager.serverConnection;
     if (server) {
-        for (var i = 0; except && i < except.length; i++)
-            if (except[i] && (server.remoteID == except[i].remoteID))
-                return;
+        for (var i = 0; except && i < except.length; i++) {
+            if (except[i]) {
+                if ((except[i].remoteID && server.remoteID == except[i].remoteID))
+                    return;
+                if ((server.remoteID == except[i]))
+                    return;
+            }
+        }
         if (message.type.startsWith("OS:")) {
             if (this.legion.objectStore.objectServer) {
                 this.legion.objectStore.objectServer.send(message);

@@ -79,7 +79,7 @@ function CRDT(objectID, crdt, objectStore) {
                 if (ret.toNetwork) {
 
                     var remote_ret = c.remotes[key].apply(c, [ret.toNetwork]);
-                    c.objectStore.propagate(c.objectID, opID, ret.toNetwork, c.versionVector.toJSONString(), key, undefined, c.crdt.type);
+                    c.objectStore.propagate(c.objectID, opID, ret.toNetwork, c.versionVector.toJSONString(), key, null, c.crdt.type);
 
                     //console.info(c.versionVector.toJSONString());
 

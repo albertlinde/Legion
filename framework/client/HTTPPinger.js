@@ -6,6 +6,7 @@
 
 var pingDebug = false;
 function HTTPPinger(locations, updateCallback) {
+    this.times = 3;
     this.locations = locations;
     this.updateCallback = updateCallback;
 
@@ -21,10 +22,10 @@ HTTPPinger.prototype.newData = function () {
     var ret = [];
     for (var j = 0; j < this.pings.length; j++) {
         var sum = 0;
-        for (var i = 0; i < 7; i++) {
+        for (var i = 0; i < this.times; i++) {
             sum += this.pings[j][i];
         }
-        ret.push(Math.ceil(sum / 7));
+        ret.push(Math.ceil(sum / this.times));
     }
     this.first = false;
     console.log("HTTPPinger: " + JSON.stringify(ret));
@@ -33,8 +34,8 @@ HTTPPinger.prototype.newData = function () {
 
 HTTPPinger.prototype.start = function () {
     var htppp = this;
-    var times = 7 * this.pings.length;
-    for (var i = 0; i < 7; i++) {
+    var times = this.times * this.pings.length;
+    for (var i = 0; i < this.times; i++) {
         for (var j = 0; j < this.pings.length; j++) {
             (function (a) {
                 setTimeout(function () {
@@ -53,7 +54,7 @@ HTTPPinger.prototype.start = function () {
 HTTPPinger.prototype.anotherPing = function (locationID, cb) {
     var htppp = this;
     this.makeCorsRequest(this.locations[locationID], function (rtt) {
-        if (htppp.pings[locationID].length > 7) {
+        if (htppp.pings[locationID].length > htppp.times) {
             htppp.pings[locationID] = htppp.pings[locationID].slice(1).concat(rtt);
         } else
             htppp.pings[locationID] = htppp.pings[locationID].concat(rtt);

@@ -16,7 +16,7 @@ function PeerConnection(remoteID, legion) {
 
     var iceServers = {
         iceServers: [
-            {url: "stun:stun.1.google.com:19302"}
+            {"url": "stun:stun.l.google.com:19302"}
         ]
     };
     this.peer = new RTCPeerConnection(iceServers);
@@ -34,7 +34,7 @@ function PeerConnection(remoteID, legion) {
         pc.keepAlive()
     }, KEEP_ALIVE_INTERVAL);
 
-    this.log=false;
+    this.log = false;
 }
 
 PeerConnection.prototype.keepAlive = function (force) {

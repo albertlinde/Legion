@@ -60,8 +60,10 @@ CRDT_Database.prototype.clearPeersQueue = function () {
         while (pop) {
             if (
                 (lastFrom == null && pop.fromConnection != null) ||
+                (lastFrom != null && pop.fromConnection == null) ||
                 (pop.fromConnection && lastFrom == null) ||
-                (pop.fromConnection != null && pop.fromConnection.remoteID != lastFrom)) {
+                (pop.fromConnection != null && pop.fromConnection.remoteID != lastFrom)
+            ) {
                 if (opList.length > 0) {
                     (function (except, os, opList) {
                         os.generateMessage(os.handlers.gotContentFromNetwork.type, opList, function (result) {

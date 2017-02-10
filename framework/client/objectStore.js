@@ -11,6 +11,7 @@ function ObjectStore(legion) {
     this.crdts = new ALMap();
 
     this.objectServer = null;
+    this.connecting = null;
 
     this.peerSyncs = new ALMap();
 
@@ -133,16 +134,22 @@ ObjectStore.prototype.gotContentFromNetwork = function (message, connection) {
 ObjectStore.prototype.disconnectFromObjectServer = function () {
     if (this.objectServer) {
         this.objectServer.close();
+        this.connecting = false;
     }
 };
 
 ObjectStore.prototype.connectToObjectServer = function () {
+    if (this.connecting) {
+        return;
+    }
     //TODO: the if is not enough. concurrent calls (see signalling server)
     if (this.legion.options.objectServerConnection.type == "NONE") {
         return;
     }
-    if (!this.objectServer && this.legion.options.objectServerConnection)
+    if (!this.objectServer && this.legion.options.objectServerConnection) {
+        this.connecting = true;
         new this.legion.options.objectServerConnection.type(this.legion.options.objectServerConnection.server, this, this.legion);
+    }
 };
 
 ObjectStore.prototype.clearServerQueue = function () {
@@ -202,8 +209,10 @@ ObjectStore.prototype.clearPeersQueue = function () {
         while (pop) {
             if (
                 (lastFrom == null && pop.fromConnection != null) ||
+                (lastFrom != null && pop.fromConnection == null) ||
                 (pop.fromConnection && lastFrom == null) ||
-                (pop.fromConnection != null && pop.fromConnection.remoteID != lastFrom)) {
+                (pop.fromConnection != null && pop.fromConnection.remoteID != lastFrom)
+            ) {
                 if (opList.length > 0) {
                     (function (except, os, opList) {
                         os.legion.generateMessage(os.handlers.gotContentFromNetwork.type, opList, function (result) {
@@ -234,7 +243,7 @@ ObjectStore.prototype.clearPeersQueue = function () {
         }
         (function (except, os, opList) {
             os.legion.generateMessage(os.handlers.gotContentFromNetwork.type, opList, function (result) {
-                if (except != null)
+                if (except)
                     os.legion.messagingAPI.broadcastMessage(result, [os.legion.connectionManager.serverConnection, except]);
                 else
                     os.legion.messagingAPI.broadcastMessage(result, [os.legion.connectionManager.serverConnection]);
@@ -341,6 +350,7 @@ ObjectStore.prototype.propagateFlattenedDelta = function (objectID, flattenedDel
  */
 ObjectStore.prototype.onServerDisconnect = function (serverConnection) {
     this.objectServer = null;
+    this.connecting = false;
     this.serverQueue.clear();
 };
 

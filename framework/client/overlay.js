@@ -81,7 +81,7 @@ Overlay.prototype.getPeers = function (amount) {
         amount = this.peerCount();
     }
     amount = parseInt(amount);
-    if (amount == this.peerCount) {
+    if (amount == this.peerCount()) {
         return this.peers.values();
     }
     var ret = this.shuffle(this.peers.values());

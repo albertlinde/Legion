@@ -181,6 +181,8 @@ PeerSync.prototype.sync = function () {
             ps.peerConnection.send(JSON.stringify(result));
             ps.sentS = true;
         } catch (e) {
+            console.error(result);
+            console.error(JSON.stringify(result));
             ps.close();
         }
     });

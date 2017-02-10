@@ -301,10 +301,10 @@ GeoOptimizedOverlay.prototype.checkCloseNodes = function () {
         if (this.legion.bullyProtocol.amBullied()) {
             this.overlay.getPeer(min).close();
         } else {
-            var pos = Math.floor(goo.activeCloseNodes.length * Math.random());
+            var pos = Math.floor(this.activeCloseNodes.length * Math.random());
             if (min == this.activeCloseNodes[pos]) {
                 //give the min node another chance to not be chosen.
-                pos = Math.floor(goo.activeCloseNodes.length * Math.random());
+                pos = Math.floor(this.activeCloseNodes.length * Math.random());
             }
             this.overlay.getPeer(pos).close();
         }

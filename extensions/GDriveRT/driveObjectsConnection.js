@@ -44,6 +44,7 @@ GDriveRTObjectsServerConnection.prototype.close = function () {
  * @param message
  */
 GDriveRTObjectsServerConnection.prototype.send = function (message) {
+    message = JSON.parse(message);
     switch (message.type) {
         case (this.objectStore.handlers.peerSync.type):
             this.onSendPeerSync();
@@ -113,6 +114,7 @@ function extractMetaFrom(rootMapOps, type, returnAsMaps) {
  * Skip the sync part. Apply remote ops to crdts directly and add crdt changes to remote.
  */
 GDriveRTObjectsServerConnection.prototype.onSendPeerSync = function () {
+    var start = Date.now();
     console.log("Starting GDriveRTObjectsServerConnection SYNC");
     var dc = this;
     var rootMap = this.model.getRoot().get('RootMap');
@@ -129,7 +131,7 @@ GDriveRTObjectsServerConnection.prototype.onSendPeerSync = function () {
         var op = rootMapOps[o];
         console.info(op);
         if (op.opID) {
-            localRootMap.deltaOperationFromNetwork(op, op, this);
+            localRootMap.deltaOperationFromNetwork(op, this);
         } else if (op.d) {
             localRootMap.deltaFromNetwork(op, this);
         } else {
@@ -182,8 +184,8 @@ GDriveRTObjectsServerConnection.prototype.onSendPeerSync = function () {
                     for (var o = 0; o < objectListAsArray.length; o++) {
                         var op = objectListAsArray[o];
                         if (op.opID) {
-                            localObject.deltaOperationFromNetwork(op, op, this);
-                        } else if (op.delta) {
+                            localObject.deltaOperationFromNetwork(op, this);
+                        } else if (op.d) {
                             localObject.deltaFromNetwork(op, this);
                         } else {
                             console.error(op);
@@ -212,16 +214,19 @@ GDriveRTObjectsServerConnection.prototype.onSendPeerSync = function () {
     clearTimeout(this.objectStore.objectServer.psTimeout);
     this.objectStore.objectServer.clearQueue();
 
-    console.log("Ending GDriveRTObjectsServerConnection SYNC");
+    console.log("TT: Ending GDriveRTObjectsServerConnection SYNC: " + (start - Date.now()));
 };
 
 GDriveRTObjectsServerConnection.prototype.operationsFromDocument = function (objectKey, operations) {
+    var start = Date.now();
+    console.log(objectKey);
     var crdt = this.objectStore.crdts.get(objectKey);
     for (var i = 0; i < operations.length; i++) {
         var op = operations[i];
+        console.log(op);
         if (op.opID) {
-            crdt.deltaOperationFromNetwork(op, op, this);
-        } else if (op.delta) {
+            crdt.deltaOperationFromNetwork(op, this);
+        } else if (op.d) {
             crdt.deltaFromNetwork(op, this);
         } else {
             console.error(objectKey);
@@ -230,6 +235,7 @@ GDriveRTObjectsServerConnection.prototype.operationsFromDocument = function (obj
             console.error(operations);
         }
     }
+    console.log("TT: opsFrom: " + (start - Date.now()))
 };
 
 
@@ -238,6 +244,7 @@ GDriveRTObjectsServerConnection.prototype.onSendPeerSyncAnswer = function (messa
 };
 
 GDriveRTObjectsServerConnection.prototype.driveListHasOP = function (oid, list, opOrDelta) {
+    var start = Date.now();
     var rootMetas = extractMetaFrom(list, "Map", true);
     var added = rootMetas[0];
     var removed = rootMetas[1];
@@ -249,7 +256,7 @@ GDriveRTObjectsServerConnection.prototype.driveListHasOP = function (oid, list, 
         } else {
             console.error("No key for this.", oid, list, opOrDelta, rootMetas);
         }
-    } else if (opOrDelta.delta) {
+    } else if (opOrDelta.d) {
         var meta = opOrDelta.m;
         var myAdds = meta.a;
         var myRemoves = meta.r;
@@ -278,9 +285,11 @@ GDriveRTObjectsServerConnection.prototype.driveListHasOP = function (oid, list, 
         console.error(opOrDelta);
         console.error("ERROR: driveListHasOP");
     }
+    console.log("TT: hasops: " + (start - Date.now()))
 };
 
 GDriveRTObjectsServerConnection.prototype.onServerContentFromNetwork = function (message) {
+    var start = Date.now();
     var objects = message.data;
     for (var i = 0; i < objects.length; i++) {
         var objectID = objects[i].objectID;
@@ -300,7 +309,7 @@ GDriveRTObjectsServerConnection.prototype.onServerContentFromNetwork = function 
                     var queuedOP = {
                         objectID: objectID,
                         opID: objects[i].opID,
-                        arg: objects[i].remoteArguments,
+                        arg: objects[i].arg,
                         key: objects[i].key
                     };
                     objectList.insert(objectList.length, queuedOP);
@@ -310,4 +319,5 @@ GDriveRTObjectsServerConnection.prototype.onServerContentFromNetwork = function 
             }
         }
     }
+    console.log("TT: onServerContentFromNetwork: " + (start - Date.now()))
 };
