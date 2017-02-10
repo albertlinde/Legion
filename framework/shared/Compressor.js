@@ -2,7 +2,6 @@
 if (typeof exports != "undefined") {
     exports.compress = compress;
     exports.decompress = decompress;
-    LZMA = require("./../../node_modules/lzma");
 }
 
 var fromDecToHex = function (number) {
