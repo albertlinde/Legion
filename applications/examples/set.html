@@ -15,11 +15,9 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="./../../framework/client/adapter.js"></script>
 
     <script src="./../legion-min.js"></script>
     <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
-    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
 </head>
 
 <body role="document">
@@ -58,7 +56,7 @@
     <div class="page-header">
         <h1>Usage</h1>
     </div>
-<pre class="prettyprint linenums">
+    <pre class="prettyprint linenums">
     var legion = new Legion();
     legion.join();
     var objectStore = legion.getObjectStore();
@@ -192,28 +190,42 @@
         var set_3;
 
         var legion = new Legion();
-        legion.join();
-        var objectStore = legion.getObjectStore();
+        var g_id = "set_page";
 
-        set_1 = objectStore.getOrCreate("set_1", legion.Set);
-        set_2 = objectStore.getOrCreate("set_2", legion.Set);
-        set_3 = objectStore.getOrCreate("set_3", legion.Set);
+        var parameters = location.search.substring(1).split("&");
 
-        set_1.setOnStateChange(function (updates, meta) {
-            console.log("Set 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_1.asArray()));
-            setChanged("#list_set_1", set_1.asArray(), 1);
-        });
-        set_2.setOnStateChange(function (updates, meta) {
-            console.log("Set 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_2.asArray()));
-            setChanged("#list_set_2", set_2.asArray(), 2);
-        });
-        set_3.setOnStateChange(function (updates, meta) {
-            console.log("Set 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_3.asArray()));
-            setChanged("#list_set_3", set_3.asArray(), 3);
-        });
+        for (var i = 0; i < parameters.length; i++) {
+            var temp = parameters[0].split("=");
+            if (temp[0] == "gid") {
+                g_id = temp[1]
+            }
+        }
 
+        var groupOptions = {
+            id: g_id,             //ex: chat room name
+            secret: "default"          //secret if required (ex: rooms can have a key)
+        };
 
-        legion.onJoin(function () {
+        legion.joinGroup(groupOptions, function (group) {
+            var objectStore = legion.getObjectStore();
+
+            set_1 = objectStore.getOrCreate("set_1", legion.Set);
+            set_2 = objectStore.getOrCreate("set_2", legion.Set);
+            set_3 = objectStore.getOrCreate("set_3", legion.Set);
+
+            set_1.setOnStateChange(function (updates, meta) {
+                console.log("Set 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_1.asArray()));
+                setChanged("#list_set_1", set_1.asArray(), 1);
+            });
+            set_2.setOnStateChange(function (updates, meta) {
+                console.log("Set 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_2.asArray()));
+                setChanged("#list_set_2", set_2.asArray(), 2);
+            });
+            set_3.setOnStateChange(function (updates, meta) {
+                console.log("Set 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_3.asArray()));
+                setChanged("#list_set_3", set_3.asArray(), 3);
+            });
+
 
             $("#add_1").removeClass("disabled");
             $("#remove_1").removeClass("disabled");
@@ -268,40 +280,6 @@
                 dataSet.remove(key);
             }
         };
-        var times = 50;
-        var a, b, c;
-        setTimeout(function () {
-            if (times <= 0)return;
-            a = setInterval(function () {
-                times--;
-                if (times <= 0) {
-                    clearInterval(a);
-                    clearInterval(b);
-                    clearInterval(c);
-                }
-                addN(5, set_1);
-            }, 100);
-            b = setInterval(function () {
-                times--;
-                if (times <= 0) {
-                    clearInterval(a);
-                    clearInterval(b);
-                    clearInterval(c);
-                }
-                addN(3, set_2);
-            }, 150);
-            c = setInterval(function () {
-                times--;
-                if (times <= 0) {
-                    clearInterval(a);
-                    clearInterval(b);
-                    clearInterval(c);
-                }
-                remN(3, set_1);
-                remN(1, set_2);
-            }, 100);
-        }, 1000);
-
     </script>
 </div>
 

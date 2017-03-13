@@ -15,11 +15,9 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="./../../framework/client/adapter.js"></script>
 
     <script src="./../legion-min.js"></script>
     <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
-    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
 </head>
 
 <body role="document">
@@ -198,28 +196,42 @@
         var map_3;
 
         var legion = new Legion();
-        legion.join();
-        var objectStore = legion.getObjectStore();
+        var g_id = "map_page";
 
+        var parameters = location.search.substring(1).split("&");
 
-        map_1 = objectStore.getOrCreate("map_1", legion.Map);
-        map_2 = objectStore.getOrCreate("map_2", legion.Map);
-        map_3 = objectStore.getOrCreate("map_3", legion.Map);
+        for (var i = 0; i < parameters.length; i++) {
+            var temp = parameters[0].split("=");
+            if (temp[0] == "gid") {
+                g_id = temp[1]
+            }
+        }
 
-        map_1.setOnStateChange(function (updates, meta) {
-            //console.log("Map 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_1.asArray()));
-            mapChanged("#list_map_1", map_1.asArray(), 1);
-        });
-        map_2.setOnStateChange(function (updates, meta) {
-            //console.log("Map 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_2.asArray()));
-            mapChanged("#list_map_2", map_2.asArray(), 2);
-        });
-        map_3.setOnStateChange(function (updates, meta) {
-            //console.log("Map 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_3.asArray()));
-            mapChanged("#list_map_3", map_3.asArray(), 3);
-        });
+        var groupOptions = {
+            id: g_id,             //ex: chat room name
+            secret: "default"          //secret if required (ex: rooms can have a key)
+        };
 
-        legion.onJoin(function () {
+        legion.joinGroup(groupOptions, function (group) {
+            var objectStore = legion.getObjectStore();
+
+            map_1 = objectStore.getOrCreate("map_1", legion.Map);
+            map_2 = objectStore.getOrCreate("map_2", legion.Map);
+            map_3 = objectStore.getOrCreate("map_3", legion.Map);
+
+            map_1.setOnStateChange(function (updates, meta) {
+                //console.log("Map 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_1.asArray()));
+                mapChanged("#list_map_1", map_1.asArray(), 1);
+            });
+            map_2.setOnStateChange(function (updates, meta) {
+                //console.log("Map 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_2.asArray()));
+                mapChanged("#list_map_2", map_2.asArray(), 2);
+            });
+            map_3.setOnStateChange(function (updates, meta) {
+                //console.log("Map 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_3.asArray()));
+                mapChanged("#list_map_3", map_3.asArray(), 3);
+            });
+
 
             $("#add_1").removeClass("disabled");
             $("#remove_1").removeClass("disabled");

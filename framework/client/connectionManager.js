@@ -16,8 +16,66 @@ function ConnectionManager(legion) {
         cm.handleSignalling(message)
     });
 
+    this.legion.messagingAPI.setHandlerFor("AuthResponse", function (message) {
+        console.log("TODO: CM.authresponse")
+    });
+
+    this.legion.messagingAPI.setHandlerFor("NoGroup", function (message) {
+        console.log("Group did not exist.");
+        if (!cm.sendingGC) {
+            cm.sendingGC = true;
+            cm.legion.generateMessage("CreateGroup", null, function (msg) {
+                msg.group = cm.legion.group;
+                cm.serverConnection.send(msg);
+            });
+        }
+    });
+
+    this.legion.messagingAPI.setHandlerFor("JoinGroupAnswer", function (message) {
+        if (message.success) {
+            if (cm.onJoinCallback) {
+                cm.onJoinCallback(cm.legion);
+            }
+        } else {
+            if (cm.onFailCallback) {
+                cm.onFailCallback(message);
+            }
+        }
+    });
+
     this.isStartingserverConnection = false;
+
+    this.group = null;
+    this.onJoinCallback = null;
+    this.onFailCallback = null;
 }
+
+ConnectionManager.prototype.joinGroup = function (groupOptions, onJoinCallback, onFailCallback) {
+    if (this.tryJoin) {
+        console.error("Multiple groups not allowed.");
+        return;
+    }
+    var cm = this;
+    var doneJoin = function () {
+        console.log("C");
+        cm.legion.generateMessage("JoinGroup", groupOptions, function (m) {
+            console.log("D");
+            cm.serverConnection.send(m);
+        });
+    };
+
+    this.tryJoin = true;
+    this.group = groupOptions;
+    this.onJoinCallback = onJoinCallback;
+    this.onFailCallback = onFailCallback;
+    if (this.legion.joined) {
+        console.log("A");
+        doneJoin();
+    } else {
+        console.log("B");
+        this.internalJoinCallback = doneJoin;
+    }
+};
 
 ConnectionManager.prototype.startSignallingConnection = function () {
     if (this.legion.options.signallingConnection.type == "NONE") {
@@ -28,6 +86,10 @@ ConnectionManager.prototype.startSignallingConnection = function () {
         //TODO: this can fail. should be restarted. timeout?
         new this.legion.options.signallingConnection.type(this.legion.options.signallingConnection.server, this.legion);
         this.isStartingserverConnection = true;
+        var cm = this;
+        setTimeout(function () {
+            cm.isStartingserverConnection = false;
+        }, 4000);
     }
 };
 
@@ -119,6 +181,10 @@ ConnectionManager.prototype.onOpenServer = function (serverConnection) {
     console.log(this.legion.getTime() + " Overlay OPEN " + this.legion.id + " to " + serverConnection.remoteID + " of type " + (serverConnection.constructor.name));
     if (serverConnection instanceof this.legion.options.signallingConnection.type) {
         this.serverConnection = serverConnection;
+        if (this.internalJoinCallback) {
+            this.internalJoinCallback();
+            this.internalJoinCallback = null;
+        }
     }
     if (this.legion.options.objectServerConnection.type != "NONE") {
         if (serverConnection instanceof this.legion.options.objectServerConnection.type) {
@@ -127,7 +193,6 @@ ConnectionManager.prototype.onOpenServer = function (serverConnection) {
     }
     if (this.legion.bullyProtocol)
         this.legion.bullyProtocol.onServerConnection(serverConnection);
-    this.legion.onOpenServer(serverConnection);
     this.legion.overlay.onServerConnection(serverConnection);
 };
 

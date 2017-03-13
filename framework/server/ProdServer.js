@@ -47,10 +47,15 @@ app.get('/', function (req, res, next) {
 });
 
 //Static files.
-app.use("/node_modules", express.static(path.resolve('./../../node_modules')));
-app.use("/applications", express.static(path.resolve('./../../applications/')));
-app.use("/applications/examples", express.static(path.resolve('./../../applications/examples')));
-app.use("/img", express.static(path.resolve('./../../applications/examples/img')));
+var static_files = [
+    ["/node_modules", express.static(path.resolve('./../../node_modules'))],
+    ["/applications", express.static(path.resolve('./../../applications/'))],
+    ["/applications/examples", express.static(path.resolve('./../../applications/examples'))],
+    ["/img", express.static(path.resolve('./../../applications/examples/img'))]
+];
+for (var i = 0; i < static_files.length; i++) {
+    app.use(static_files[i][0], static_files[i][1]);
+}
 
 //Last resort.
 app.use(function (req, res, next) {
@@ -82,22 +87,34 @@ httpsServer.listen(https_port, function () {
 });
 
 var Duplicates = require('./../shared/Duplicates.js').Duplicates;
-var Compressor = require('./../shared/Compressor.js');
-var distanceFunction = require('./../shared/Utils.js').distanceFunction;
 
 var util = require('util');
 var ALMap = require('./../shared/ALMap.js').ALMap;
 var AuthServer = require('./Authserver.js').AuthServer;
+var GroupsManager = require('./GroupsManager.js').GroupsManager;
+var Group = require('./Group.js').Group;
 
 initService();
+
+function initialIntegrityCheck(parsed) {
+    return true;
+    //TODO
+}
+
+var killClientConnection = function (socket, err, thrown_event, original_message) {
+    //TODO: check error, log, remove the client, block the client.
+    util.log("Killing a client: " + socket.client.id);
+    util.log(err);
+    socket.close();
+};
 
 function initService() {
 
     var duplicates = new Duplicates();
 
+    //TODO: on server re-boot message generation breaks.
     var messageCount = 0;
 
-    //TODO: on server re-boot message generation breaks.
     /**
      *
      * @param type {string}
@@ -111,241 +128,116 @@ function initService() {
         };
     };
 
-    var nodes = new NodesStructure();
     var authority = new AuthServer(credentials);
 
     //TODO: well defined security and parameters
     setInterval(function () {
-        if (nodes.size() > 0) {
-            var HB = generateMessage("SHB");
-            HB.timestamp = Date.now();
-            HB.validity = Config.signalling.SERVER_HB_VALIDITY;
-            HB.KeyID = authority.getCurrentKey().id;
-            HB.signature = authority.signedMessageDigest("" + HB.timestamp + HB.ID + HB.KeyID + HB.validity);
-            var msg = JSON.stringify(HB);
-
-            var deadNodes = [];
-            for (var i = 0; i < nodes.size(); i++) {
-                var node = nodes.getNodeByPos(i);
-                if (node.readyState == 1) {//TODO: fails here "'readyState' of undefined".
-                    util.log("  -> Sending HB to " + node.remoteID);
-                    node.send(msg);
-                } else {
-                    deadNodes.push(node.remoteID);
-                }
-            }
-            util.log("HB time: [" + HB.timestamp + "," + (HB.timestamp + HB.validity) + "]");
-            nodes.removeAllNodes(deadNodes);
-        }
+        //TODO: send a HB to each first client.
+        groupsManager.sendHB();
     }, Config.signalling.SERVER_HB_INTERVAL);
 
+
+    var options = {};
+
+    var groupsManager = new GroupsManager(options, generateMessage, authority);
+    var defaultGroup = {
+        id: "default",
+        secret: "default",
+        crdts: {
+            permitted: function (id, type) {
+                return false; //no more objects for the example/index page.
+            },
+            lists: ["list_1", "list_2", "list_3"],
+            maps: ["map_1", "map_2", "map_3"],
+            sets: ["set_1", "set_2", "set_3"],
+            counters: ["counter_1", "counter_2", "counter_3"]
+        }
+    };
+    groupsManager.addGroup(null, defaultGroup);
+    groupsManager.sendHB();
+
     wss.on('connection', function (socket) {
-            //TODO: am working here, node IDs and distances must be confirmed if they are sent and kept correctly.
             util.log("Connection.");
-            socket.on('message', function incoming(message) {
-                    //util.log(message);
-                    //TODO: try catch on parse.
-                    var parsed = JSON.parse(message);
-                    //util.log(parsed);
+            socket.on('message',
+                function incoming(original) {
+                    var parsed;
+                    try {
+                        parsed = JSON.parse(original);
+                    } catch (error) {
+                        killClientConnection(socket, "JSON parse failed.", null, original);
+                        return;
+                    }
+
+                    if (!initialIntegrityCheck(parsed)) {
+                        killClientConnection(socket, "Failed on initial integrity check.", error, original);
+                        return;
+                    }
+
+                    if (duplicates.contains(parsed.s, parsed.ID)) {
+                        util.log(" : d " + parsed.type + ".");
+                        return;
+                    }
+
+                    duplicates.add(parsed.s, parsed.ID);
+                    util.log(" : " + parsed.type + ".");
+
                     if (parsed.type == "Auth") {
-                        if (!socket.remoteID) {
-                            var auth = authority.verify(parsed);
-                            util.log("Got Auth from " + JSON.stringify(parsed.client));
-                            util.log("   Group: -> " + JSON.stringify(parsed.group));
-                            util.log("   -> Sending back auth response: " + JSON.stringify(auth.auth.result));
-                            socket.send(JSON.stringify(auth));
-                            if (auth.auth.result == "Failed") {
-                                socket.close();
-                            } else {
-                                if (parsed.nodeID) {
-                                    if (socket.remoteID) {
-                                        util.log("Reconnected with new socket " + parsed.nodeID + ". Old was: " + socket.remoteID);
-                                    } else {
-                                        util.log("Reconnected " + parsed.nodeID + ".");
-                                    }
-                                } else {
-                                    util.log("Connected as " + auth.auth.nodeID);
-                                }
-                                socket.remoteID = auth.auth.nodeID;
-                                nodes.addNode(parsed.group, auth.auth.nodeID, socket);
-                            }
+                        var auth = authority.verifyClient(socket, parsed);
+                        util.log("Got Auth from " + JSON.stringify(parsed.client) + " : " + JSON.stringify(auth.success));
+                        if (auth.success) {
+                            socket.authSuccess = true;
+                            socket.client = parsed.client;
+                            groupsManager.addClient(socket);
                         }
-                    }
-                    else if (parsed.type == "CR") {
-                        /**
-                         * @type{
-                             * {distances: Array.<Number>,
-                             * close: 1|0,
-                             * far: 1|0,
-                             * hop: 1}
-                             * }
-                         */
-                        var data = parsed.data;
-                        socket.distances = data.distances;
-
-                        var deadNodes = [];
-                        var end = nodes.size() - 1;
-                        var start = Math.floor(end * Math.random());
-
-                        var doneClose = data.close < 1;
-                        var doneFar = data.far < 1;
-                        nodes.getNodeByPos(0);//resets keys.
-
-                        var sent = false;
-                        util.log("Got ConnectRequest to (" + data.close + "," + data.far + ")from " + socket.remoteID);
-
-                        for (var i = start; end > 0;) {
-                            var node = nodes.getNodeByPos(i);
-                            util.log("  -> Checking  node " + node.remoteID + " from " + i + " [" + start + "," + end + "]");
-
-                            if (node === socket) {
-                                //don't send back.
-                            } else {
-                                if (node.readyState == 1) {
-                                    if (node.distances) {
-                                        var actualDistance = distanceFunction(node.distances, data.distances);
-                                        util.log("    -> distance:" + actualDistance, node.distances, data.distances);
-
-                                        if (actualDistance <= 1 && !doneClose) {
-                                            util.log("      -> Sending to close node " + node.remoteID);
-                                            node.send(message);
-                                            sent = true;
-                                            doneClose = true;
-                                        }
-
-                                        if (actualDistance > 1 && !doneFar) {
-                                            util.log("      -> Sending to far node " + node.remoteID);
-                                            node.send(message);
-                                            sent = true;
-                                            doneFar = true;
-                                        }
-                                    }
-                                } else {
-                                    deadNodes.push(node.remoteID);
-                                }
-                            }
-                            if (doneClose && doneFar) break;
-                            i++;
-                            if (i > end) {
-                                i = 0;
-                                end = nodes.size() - 1;
-                            }
-                            if (i == start) {
-                                break;
-                            }
-                        }
-                        if (!sent) {
-                            util.log("  -> No suitable nodes found.");
-                        }
-                        if (deadNodes.length > 0) {
-                            util.log("Removed nodes: " + deadNodes);
-                            nodes.removeAllNodes(deadNodes);
-                        }
-
-                    }
-                    else if (parsed.type == "LRW") {
-                        //TODO CRITICAL! we get in here!
-                        util.log("ERROR!!!");
-                        util.log(message);
-                        util.log("ERROR!!!");
-                    }
-                    else if (parsed.type == "FRW") {
-                        util.log("ERROR!!!");
-                        util.log(message);
-                        util.log("ERROR!!!");
-                    }
-                    else if (parsed.type == "DU") {
-                        socket.distances = parsed.data.distances;
-                        util.log("Updated distances for peer " + socket.remoteID + ":" + socket.distances)
+                        var authMessage = generateMessage("AuthResponse");
+                        authMessage.auth = auth;
+                        socket.send(JSON.stringify(authMessage));
                     } else {
-                        if (!duplicates.contains(parsed.s, parsed.ID)) {
-                            duplicates.add(parsed.s, parsed.ID);
+                        if (!socket.authSuccess) {
+                            killClientConnection(socket, "Client attempted things before auth.", null, original);
+                            return;
+                        }
 
-                            if (parsed.destination != null) {
-                                //Try to send do destination, on failure back to default behaviour.
-                                var node = nodes.getNode(parsed.destination);
-                                if (node && node.readyState == 1) {
-                                    util.log("Destination message: " + parsed.type);
-                                    util.log("   -> Sending to " + parsed.destination);
-                                    node.send(message);
-                                    return;
-                                }
-                            }
-                            util.log("Broadcast: " + parsed.type);
-                            var end = nodes.size();
-                            if (parsed.N) {
-                                end = Math.min(parsed.N, end);
-                            }
-                            if (parsed.ttl) {
-                                parsed.ttl--;
-                            }
-                            var message = JSON.stringify(parsed);
-                            var deadNodes = [];
-                            for (var i = 0; i < end; i++) {
-                                //TODO: if sending to N, randomize the nodes it is sent to.
-                                var node = nodes.getNodeByPos(i);
-                                if (node === socket)continue;
-                                if (node.remoteID == parsed.s)continue;
-
-                                if (node.readyState == 1) {
-                                    util.log("   -> Sending to " + node.remoteID);
-                                    node.send(message);
+                        if (parsed.group) {
+                            util.log("   Group: -> " + JSON.stringify(parsed.group));
+                            var group = groupsManager.getGroup(parsed.group);
+                            if (group) {
+                                group.handleMessage(socket, parsed, original);
+                            } else {
+                                if (parsed.type == "CreateGroup") {
+                                    util.log("   Creating new Group.");
+                                    group = groupsManager.addGroup(socket, parsed.group);
+                                    if (group && group instanceof Group) {
+                                        group.handleMessage(socket, parsed, original);
+                                    } else {
+                                        util.log("   Group not created.");
+                                        var noCreateMessage = generateMessage("NoGroupCreated");
+                                        noCreateMessage.message = group;
+                                        socket.send(JSON.stringify(noCreateMessage));
+                                    }
                                 } else {
-                                    deadNodes.push(node.remoteID);
+                                    util.log("   Group does not exist.");
+                                    group = groupsManager.addGroup(socket, parsed.group);
+                                    if (group && group instanceof Group) {
+                                        group.handleMessage(socket, parsed, original);
+                                    } else {
+                                        var noGroupMessage = generateMessage("NoGroup");
+                                        noGroupMessage.group = parsed.group;
+                                        socket.send(JSON.stringify(noGroupMessage));
+                                    }
                                 }
                             }
-                            nodes.removeAllNodes(deadNodes);
+                        } else {
+                            console.error("correct client, no group");
+                            console.error(parsed);
                         }
                     }
                 }
             );
             socket.on('close', function () {
-                util.log("Disconnected " + socket.remoteID);
-                nodes.removeNode(socket.remoteID);
+                util.log("Disconnected " + socket.client.id);
+                groupsManager.removeClient(socket);
             });
         }
     )
 }
-
-function NodesStructure() {
-    this.nodesMap = {};
-    this.count = 0;
-    this.keys = [];
-}
-
-NodesStructure.prototype.size = function () {
-    return this.count;
-};
-
-NodesStructure.prototype.contains = function (id) {
-    return this.nodesMap[id] != null;
-};
-
-NodesStructure.prototype.getNode = function (id) {
-    return this.nodesMap[id];
-};
-NodesStructure.prototype.getNodeByPos = function (pos) {
-    if (pos == 0) {
-        this.keys = Object.keys(this.nodesMap);
-    }
-    return this.nodesMap[this.keys[pos]];
-};
-
-//TODO: use group.
-NodesStructure.prototype.addNode = function (group, id, socket) {
-    if (!this.contains(id))
-        this.count++;
-    this.nodesMap[id] = socket;
-};
-
-NodesStructure.prototype.removeAllNodes = function (idArray) {
-    for (var i = 0; i < idArray.length; i++) {
-        this.removeNode(idArray[i]);
-    }
-};
-
-NodesStructure.prototype.removeNode = function (id) {
-    if (this.contains(id))
-        this.count--;
-    delete this.nodesMap[id];
-};

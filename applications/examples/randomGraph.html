@@ -15,11 +15,9 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="./../../framework/client/adapter.js"></script>
 
     <script src="./../legion-min.js"></script>
     <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
-    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
 
     <script type="text/javascript" src="./../../node_modules/vis/dist/vis.js"></script>
     <link href="./../../node_modules/vis/dist/vis.css" rel="stylesheet" type="text/css"/>
@@ -68,7 +66,6 @@
     </div>
 <pre class="prettyprint linenums">
     var options = {
-        clientID: randInt(1000, 9000),
         overlayProtocol:
             type: RandomGraphOverlay,
             parameters: {
@@ -88,7 +85,7 @@
 
     legion.overlay.setOnChange(function(change, peerIds, serverIds){
         if(map)
-            map.set(clientID, {peers: peerIds, servers: serverIds});
+            map.set(legion.id, {peers: peerIds, servers: serverIds});
     });
     legion.join();
 
@@ -141,9 +138,7 @@
             $("#add_client_v").addClass("disabled");
             $("#add_client_nv").addClass("disabled");
             vis_update = visualization;
-            var clientID = 1000 + Math.floor((Math.random() * 9999) % (10000));
             var options = {
-                clientID: clientID,
                 overlayProtocol: {
                     type: RandomGraphOverlay,
                     parameters: {
@@ -157,32 +152,44 @@
                         conn_check_timeout_multiplier: 1.5,
                         RAND_VAL: 0.3
                     }
-                },
-                objectServerConnection: {type: "NONE"}
+                }
             };
             var objectStore;
             legion = new Legion(options);
 
             legion.overlay.setOnChange(function (change, peerIds, serverIds) {
                 if (map)
-                    map.set(clientID, {peers: peerIds, servers: serverIds, time: Date.now()});
+                    map.set(legion.id, {peers: peerIds, servers: serverIds, time: Date.now()});
             });
 
             setInterval(function () {
                 if (map) {
-                    map.set(clientID, {
+                    map.set(legion.id, {
                         peers: legion.overlay.getPeerIDs(),
                         servers: legion.overlay.getServerIDs(),
                         time: Date.now()
                     });
                 }
             }, dataReset);
+            var g_id = "random_graph_page";
 
-            legion.join();
+            var parameters = location.search.substring(1).split("&");
 
-            legion.onJoin(function () {
+            for (var i = 0; i < parameters.length; i++) {
+                var temp = parameters[0].split("=");
+                if (temp[0] == "gid") {
+                    g_id = temp[1]
+                }
+            }
+
+            var groupOptions = {
+                id: g_id,             //ex: chat room name
+                secret: "default"          //secret if required (ex: rooms can have a key)
+            };
+
+            legion.joinGroup(groupOptions, function (group) {
                 objectStore = legion.getObjectStore();
-                map = objectStore.get("overlay_map", Legion.OPERATIONS_Map);
+                map = objectStore.getOrCreate("overlay_map", legion.Map);
 
                 if (vis_update) {
                     setTimeout(function () {
@@ -204,7 +211,7 @@
 
             for (var i = 0; i < array.length; i++) {
                 var id1 = parseInt(array[i][0]);
-                var data = JSON.parse(array[i][1]);
+                var data = JSON.parse(array[i][1][0]);
                 var time = data.time;
                 var color = 'blue';
                 if (time + nodeTimeout < Date.now())
@@ -217,7 +224,7 @@
                     edges.push({from: id1, to: id2, value: 1, title: 'pc', color: color});
                 }
                 for (var j = 0; j < data.servers.length; j++) {
-                    nodes.set(j, true);
+                    nodes.set(j, color);
                     edges.push({from: id1, to: j, value: 1, title: 'sc', color: color});
                 }
                 if (!nodes[id1] || (nodes[id1] == 'red'))
@@ -231,6 +238,7 @@
                     return {id: parseInt(currentObject), value: 1, label: currentObject, color: nodes[currentObject]}
             });
 
+            edges.push({from: 0, to: 1, value: 10, title: 'scsc', color: "green"});
             reset(nodes2, edges);
         };
 
@@ -242,7 +250,6 @@
             var options = {
                 autoResize: true
             };
-            console.info(data);
             network = new vis.Network(container, data, options);
         };
 

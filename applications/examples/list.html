@@ -15,11 +15,9 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="./../../framework/client/adapter.js"></script>
 
     <script src="./../legion-min.js"></script>
     <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
-    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
 </head>
 
 <body role="document">
@@ -58,7 +56,7 @@
     <div class="page-header">
         <h1>Usage</h1>
     </div>
-<pre class="prettyprint linenums">
+    <pre class="prettyprint linenums">
     var legion = new Legion();
     legion.join();
     var objectStore = legion.getObjectStore();
@@ -196,29 +194,44 @@
         var list_2;
         var list_3;
 
-        var legion = new Legion({objectServerConnection: {type: "NONE"}});
-        legion.join();
-        var objectStore = legion.getObjectStore();
+        var legion = new Legion();
+        var g_id = "list_page";
 
-        list_1 = objectStore.getOrCreate("list_1", legion.List);
-        list_2 = objectStore.getOrCreate("list_2", legion.List);
-        list_3 = objectStore.getOrCreate("list_3", legion.List);
+        var parameters = location.search.substring(1).split("&");
+
+        for (var i = 0; i < parameters.length; i++) {
+            var temp = parameters[0].split("=");
+            if (temp[0] == "gid") {
+                g_id = temp[1]
+            }
+        }
+
+        var groupOptions = {
+            id: g_id,             //ex: chat room name
+            secret: "default"          //secret if required (ex: rooms can have a key)
+        };
+
+        legion.joinGroup(groupOptions, function (group) {
+            var objectStore = legion.getObjectStore();
+
+            list_1 = objectStore.getOrCreate("list_1", legion.List);
+            list_2 = objectStore.getOrCreate("list_2", legion.List);
+            list_3 = objectStore.getOrCreate("list_3", legion.List);
 
 
-        list_1.setOnStateChange(function (updates, meta) {
-            console.log("List 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_1.getValue()));
-            listChanged("#list_list_1", list_1.asArray());
-        });
-        list_2.setOnStateChange(function (updates, meta) {
-            console.log("List 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_2.getValue()));
-            listChanged("#list_list_2", list_2.asArray());
-        });
-        list_3.setOnStateChange(function (updates, meta) {
-            console.log("List 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_3.getValue()));
-            listChanged("#list_list_3", list_3.asArray());
-        });
+            list_1.setOnStateChange(function (updates, meta) {
+                console.log("List 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_1.getValue()));
+                listChanged("#list_list_1", list_1.asArray());
+            });
+            list_2.setOnStateChange(function (updates, meta) {
+                console.log("List 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_2.getValue()));
+                listChanged("#list_list_2", list_2.asArray());
+            });
+            list_3.setOnStateChange(function (updates, meta) {
+                console.log("List 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_3.getValue()));
+                listChanged("#list_list_3", list_3.asArray());
+            });
 
-        legion.onJoin(function () {
             $("#add_1").removeClass("disabled");
             $("#remove_1").removeClass("disabled");
             listChanged("#list_list_1", list_1.asArray());
@@ -286,7 +299,7 @@
         var times = 0;
         var a, b, c;
         setTimeout(function () {
-            if(times<=0)return;
+            if (times <= 0)return;
             a = setInterval(function () {
                 times--;
                 if (times <= 0) {

@@ -22,8 +22,8 @@ function ServerConnection(server, legion) {
         //console.info("MS:" + event.data);
 
         if (m.auth) {
-            legion.secure.gotServerAuthenticationResult(m.auth, sc);
-            if (m.auth.result == "Success") {
+            legion.secure.gotServerAuthenticationResult(m.auth.auth, sc);
+            if (m.auth.auth.result == "Success") {
                 sc.legion.connectionManager.onOpenServer(sc);
             } else {
                 console.error("Not implemented: error on auth.", m.auth);

@@ -8,3 +8,4 @@ applications/legion-min.js
 send_to_prod.sh
 run_experiment.sh
 *.pub
+framework/server/keyData/*

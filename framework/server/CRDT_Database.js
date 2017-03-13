@@ -1,16 +1,24 @@
 if (typeof exports != "undefined") {
     exports.CRDT_Database = CRDT_Database;
-
-    ALMap = require('./../shared/ALMap.js');
-    ALMap = ALMap.ALMap;
-    DS_DLList = require('./../shared/dataStructures/DS_DLList.js');
-    DS_DLList = DS_DLList.DS_DLList;
-    util = require('util');
-    Compressor = require('./../shared/Compressor.js');
-    objectsDebug = false;
 }
 
-function CRDT_Database(messaging, peerSyncs) {
+var ALMap = require('./../shared/ALMap.js').ALMap;
+var CRDT = require('./../shared/crdt.js').CRDT;
+var DS_DLList = require('./../shared/dataStructures/DS_DLList.js');
+var DS_DLList = DS_DLList.DS_DLList;
+var util = require('util');
+var Compressor = require('./../shared/Compressor.js');
+var objectsDebug = false;
+
+var CRDT_LIB = {};
+
+CRDT_LIB.Counter = require('./../shared/crdtLib/deltaCounter.js').DELTA_Counter;
+CRDT_LIB.Set = require('./../shared/crdtLib/deltaSet.js').DELTA_Set;
+CRDT_LIB.Map = require('./../shared/crdtLib/deltaMap.js').DELTA_Map;
+CRDT_LIB.List = require('./../shared/crdtLib/deltaList.js').DELTA_List;
+
+function CRDT_Database(messaging, peerSyncs, g) {
+    this.g = g;
     var cb = this;
     //TODO: the non-constant constants must be put somewhere neat.
     this.peerSendInterval = 3000;
@@ -38,19 +46,55 @@ function CRDT_Database(messaging, peerSyncs) {
 
     }, this.peerSendInterval);
 
-    //Following code served as a tester for client example:set.html
-    /*
-     var n = 0;
-     setInterval(function () {
-     try {
-     cb.getCRDT("set_1_state").add("s:" + ++n);
-     cb.getCRDT("set_2_operations").add("s:" + ++n)
-     } catch (e) {
-     console.log("No data yet.");
-     }
-     }, 2000);
-     */
+    this.legion = {id: "db"};
+
+    this.defineCRDT(CRDT_LIB.Counter);
+    this.defineCRDT(CRDT_LIB.Set);
+    this.defineCRDT(CRDT_LIB.Map);
+    this.defineCRDT(CRDT_LIB.List);
+
+    var db = this;
+    this.handlers = {
+        peerSync: {
+            //The order is, when clients syncs objects are initiated on the server side.
+            //Only then can the server sync as this is when he HAS them.
+            //Only on PSA will the objects have the client's changes.
+            type: "OS:PS", callback: function (message, connection) {
+                //util.log("AA1" + JSON.stringify(message));
+                var objects = message.data;
+                for (var i = 0; i < objects.length; i++) {
+                    db.getOrCreate(objects[i].id, objects[i].type);
+                }
+                var ps = peerSyncs.get(connection.remoteID);
+                ps.sync();
+                ps.handleSync(message);
+            }
+        },
+        peerSyncAnswer: {
+            type: "OS:PSA", callback: function (message, connection) {
+                //util.log("AA2" + JSON.stringify(message));
+                var ps = peerSyncs.get(connection.remoteID);
+                ps.handleSyncAnswer(message, connection);
+            }
+        },
+        gotContentFromNetwork: {
+            type: "OS:C", callback: function (message, connection) {
+                //util.log("AA3" + JSON.stringify(message));
+                db.gotContentFromNetwork(message, connection);
+            }
+        }
+    };
+
+    var os = {
+        id: "localhost:8004",
+        messageCount: 0
+    };
+
+    this.id = os.id;
+
+    this.versionVectorDiff = CRDT.versionVectorDiff;
 }
+
 CRDT_Database.prototype.clearPeersQueue = function () {
     if (this.peersQueue.size() > 0) {
         console.log("Messages in peers queue: " + this.peersQueue.size());
@@ -100,10 +144,14 @@ CRDT_Database.prototype.clearPeersQueue = function () {
 };
 
 CRDT_Database.prototype.saveToDisk = function () {
-    console.log("(not) saving to disk.");
-    var keys = this.crdts.keys();
-    for (var i = 0; i < keys.length; i++) {
-        console.log("    KEY: " + keys[i] + " VALUE: " + JSON.stringify(this.get(keys[i]).getValue()) + " VV: " + JSON.stringify(this.get(keys[i]).versionVector.toJSONString()));
+    if (this.g.nodes.size() > 0) {
+        console.log("Group active: " + this.g.id);
+        var keys = this.crdts.keys();
+        for (var i = 0; i < keys.length; i++) {
+            console.log("    KEY: " + keys[i] + " VALUE: " + JSON.stringify(this.get(keys[i]).getValue()) + " VV: " + JSON.stringify(this.get(keys[i]).versionVector.toJSONString()));
+        }
+    } else {
+        console.log("Group not active: " + this.g.id);
     }
 };
 

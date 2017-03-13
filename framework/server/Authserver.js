@@ -2,7 +2,7 @@ var ALMap = require('./../shared/ALMap.js').ALMap;
 var forge = require('node-forge');
 var util = require('util');
 var Config = require('./config.js');
-
+var storage = require('node-persist');
 exports.AuthServer = AuthServer;
 
 function AuthServer(credentials) {
@@ -14,9 +14,7 @@ function AuthServer(credentials) {
     this.publicKeyString = forge.pki.publicKeyToAsn1(this.publicKey);
 
     this.keys = new ALMap();
-    //TODO: ids of keys can't start at 1 every time the server is re-booted!
     //TODO: nice way to force new key!
-    this.keys.set(1, this.newKey(1));
     /*
      var ass = this;
      setInterval(function () {
@@ -25,6 +23,23 @@ function AuthServer(credentials) {
      }, 25 * 1000);*/
     this.clientCheck = Config.clientCheck;
     this.groupCheck = Config.groupCheck;
+
+    var auth = this;
+    storage.initSync({dir: 'keyData'});
+
+    var currentKey = storage.getItemSync("key");
+    if (currentKey) {
+        util.log("Found a key!");
+        var keyID = parseInt(currentKey);
+        var key = JSON.parse(storage.getItemSync(currentKey));
+        auth.keys.set(keyID, key);
+    } else {
+        util.log("Found no key.");
+        auth.keys.set(1, auth.newKey("1"));
+        storage.setItemSync("key", "1");
+        storage.setItemSync("1", JSON.stringify(auth.keys.get(1)));
+    }
+    auth.started = true;
 }
 
 AuthServer.prototype.getCurrentKey = function () {
@@ -83,4 +98,15 @@ AuthServer.prototype.signedMessageDigest = function (string) {
 AuthServer.prototype.randInt = function (N) {
     //TODO: why is this here?
     return Math.floor((Math.random() * Number.MAX_VALUE) % (Math.pow(10, N)));
+};
+
+
+//Only below is new.
+AuthServer.prototype.verifyClient = function (socket, parsed) {
+    var ret = this.verify(parsed);
+    ret.success = true;
+    return ret;
+    //TODO: use parsed.client.[id, secret]
+
+    //TODO: return {success->bool, message->string to be given to client}
 };

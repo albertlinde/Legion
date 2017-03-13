@@ -15,11 +15,9 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="./../../node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="./../../framework/client/adapter.js"></script>
 
     <script src="./../legion-min.js"></script>
     <script src="./../../node_modules/node-forge/js/forge.min.js"></script>
-    <script src="./../../node_modules/lzma/src/lzma_worker-min.js"></script>
 
     <script type="text/javascript" src="./../../node_modules/vis/dist/vis.js"></script>
     <link href="./../../node_modules/vis/dist/vis.css" rel="stylesheet" type="text/css"/>
@@ -39,12 +37,11 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="old_index.html">Legion showcase</a>
+            <a class="navbar-brand" href="index.html">Legion showcase</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li class="active"><a href="old_index.html">Back</a></li>
-                <li class="active"><a href="#">Overlay Cliques Example</a></li>
+                <li class="active"><a href="index.html">Home</a></li>
             </ul>
         </div>
         <!--/.nav-collapse -->
@@ -62,9 +59,8 @@
     <div class="page-header">
         <h1>Usage</h1>
     </div>
-<pre class="prettyprint linenums">
+    <pre class="prettyprint linenums">
     var options = {
-        clientID: randInt(1000, 9000),
         overlayProtocol: {
             type: CliquesOverlay},
             parameters: {floodInterval: 15 * 1000}
@@ -75,7 +71,7 @@
 
     legion.overlay.setOnChange(function(change, peerIds, serverIds){
         if(map)
-            map.set(clientID, {peers: peerIds, servers: serverIds});
+            map.set(legion.id, {peers: peerIds, servers: serverIds});
     });
     legion.join();
 
@@ -128,16 +124,11 @@
             $("#add_client_v").addClass("disabled");
             $("#add_client_nv").addClass("disabled");
             vis_update = visualization;
-            var clientID = 1000 + Math.floor((Math.random() * 9999) % (10000));
 
             var options = {
-                clientID: clientID,
                 overlayProtocol: {
                     type: CliquesOverlay,
                     parameters: {floodInterval: 15 * 1000}
-                },
-                objectServerConnection: {
-                    type: "NONE"
                 }
             };
 
@@ -146,12 +137,12 @@
 
             legion.overlay.setOnChange(function (change, peerIds, serverIds) {
                 if (map)
-                    map.set(clientID, {peers: peerIds, servers: serverIds, time: Date.now()});
+                    map.set(legion.id, {peers: peerIds, servers: serverIds, time: Date.now()});
             });
 
             setInterval(function () {
                 if (map) {
-                    map.set(clientID, {
+                    map.set(legion.id, {
                         peers: legion.overlay.getPeerIDs(),
                         servers: legion.overlay.getServerIDs(),
                         time: Date.now()
@@ -159,9 +150,23 @@
                 }
             }, dataReset);
 
-            legion.join();
+            var g_id = "cliques_page";
 
-            legion.onJoin(function () {
+            var parameters = location.search.substring(1).split("&");
+
+            for (var i = 0; i < parameters.length; i++) {
+                var temp = parameters[0].split("=");
+                if (temp[0] == "gid") {
+                    g_id = temp[1]
+                }
+            }
+
+            var groupOptions = {
+                id: g_id,             //ex: chat room name
+                secret: "default"          //secret if required (ex: rooms can have a key)
+            };
+
+            legion.joinGroup(groupOptions, function (group) {
                 objectStore = legion.getObjectStore();
                 map = objectStore.getOrCreate("overlay_map", legion.Map);
 

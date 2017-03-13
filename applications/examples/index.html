@@ -54,54 +54,103 @@
         </div>
     </div>
 </nav>
-<div class="panel panel-danger" id="network_status"
-     style="position:fixed;margin-top: 80px; margin-right: 25px; z-index: 9999; right: 0">
+<div class="panel panel-default" style="position:fixed;bottom: 0px;z-index: 9999;margin-bottom: 0px;">
     <div class="panel-heading">
-        <p style="margin-bottom: 0">Network status:</p>
+        <p style="margin-bottom: 0">Legion status: <span class="badge"><a id="myLink" title="Click to do something"
+                                                                          href="#"
+                                                                          onclick="toggle_status();return false;">x</a>
+</span></p>
     </div>
-    <div class="panel-body">
-        <p style="width:150px;overflow: auto; white-space: nowrap">Servers: <span
-                id="network_status_server">0</span></p>
 
-        <p style="width:150px;overflow: auto;white-space: nowrap">Peers: <span
-                id="network_status_peerCount">0</span></p>
+    <div id="legion_status_panel_content" class="panel-body" style="padding: 0px">
+        <table>
+            <tr>
+                <td>
+                    <p class="alert alert-danger" id="network_status" style="margin: 0px;">Servers: <span
+                            id="network_status_server">0</span>
+
+                        Peers: <span
+                                id="network_status_peerCount">0</span></p>
+                </td>
+                <td>
+                    <div id="alert_yes_chrome" class="alert alert-success hidden" role="alert" style="margin: 0px;">
+                        <strong>Good.</strong> You are using Chrome.
+                    </div>
+                    <div id="alert_no_chrome" class="alert alert-warning" role="alert" style="margin: 0px;">
+                        <strong>Warning!</strong> Please use Google Chrome (or <a href="http://iswebrtcreadyyet.com"
+                                                                                  target="_blank">another data-channel
+                        supporting browser</a>) to enable peer-to-peer connections. You are still able to use the
+                        examples as your are defaulted back to client-server interaction.
+                    </div>
+                </td>
+
+            </tr>
+        </table>
     </div>
 </div>
 
 <div class="container theme-showcase" role="main">
     <div class="jumbotron">
-        <h1>Legion API</h1>
+        <h1>Legion</h1>
 
-        <p><b>The API for all your data requirements.</b></p>
+        <p>Legion lets you easily create or extend applications with peer-to-peer interactions!</p>
 
-        <p>Legion offers shared mutable data, replicates to the server for durability
-            and handles all concurrency issues out of the box. Clients sharing data
-            leverage on WebRTC automatically improving latency and scalability!
+        <p>Legion offers:</p>
+        <ul>
+            <li>Mutable data objects.</li>
+            <li>Transparent peer-to-peer synchronization.</li>
+            <li>Offline operation.</li>
+            <li>Durability on the server.</li>
+            <li>No Concurrency-issues!</li>
+            <li>Secure data-sharing and access control.</li>
+        </ul>
+
+        <p>With peer-to-peer enabled, your get
+            <b>lower client-to-client latency</b>,
+            <b>reduced server load </b> and
+            <b> disconnected operation!</b><sup><a href="#refs">1</a></sup>
         </p>
 
-        <p>You can turn off peer-to-peer to get client-server only interactions, or turn off the server to get only p2p
-            interactions. Both enabled ensures <b> reduced load, improved scalability and durability.</b></p>
-    	
-			<BR>
-		
-		<p style="font-size:85%;">Legion is a result from the <a href="https://syncfree.lip6.fr" target="_blank">European project Syncfree</a>. The Legion development team combines researchers from the <a href="http://www.di.fct.unl.pt" target="_blank">Informatics Department</a>, <a href="http://www.fct.unl.pt" target="_blank">FCT</a>, <a href="http://www.unl.pt/en/" target="_blank">NOVA University of Lisbon</a> and the <a href="http://nova-lincs.di.fct.unl.pt" target="_blank">NOVA LINCS Laboratory</a> in Portugal and researchers from the <a href="http://www.uni-kl.de/en/home/" target="_blank">Technische Universität Kaiserslautern</a> in Germany.</p>
-		
-		<p>
-		   <img src="img/syncfree.png" style="background-color:grey" width="200" height="40" alt="Syncfree project">
-		   <img src="img/logofct.png" width="200" height="40" alt="FCT, UNL">
-		   <img src="img/logo_novalincs.png" width="200" height="50" alt="NOVA LINCS">
-		   <img src="img/TUK.png" width="180" height="50" alt="Technische Universitat Kaiserslautern">
-		</p>
-	</div>
+        <p>The code to run your own is available on github:
+            <a target="_blank" href="https://github.com/albertlinde/Legion">https://github.com/albertlinde/Legion</a>
+        </p>
 
-    <div id="alert_yes_chrome" class="alert alert-success hidden" role="alert">
-        <strong>Good.</strong> You are using Chrome.
-    </div>
-    <div id="alert_no_chrome" class="alert alert-warning" role="alert">
-        <strong>Warning!</strong> Please use Google Chrome
-        (or <a href="http://iswebrtcreadyyet.com" target="_blank">another supporting browser</a>)
-        to enable peer-to-peer connections. You are still able to use the examples
-        as your are defaulted back to client-server interaction.
+        <p>Legion is under continuous development and not production-stable. Work in progress:</p>
+        <ul>
+            <li>
+                Peer-to-peer coordination (to lower the amount of resources required on the central server).
+            </li>
+            <li>
+                Peer-to-peer caching.
+            </li>
+            <li>
+                Peer-trust (i.e., preventing cheating).
+            </li>
+            <li>
+                Additional overlay choices.
+            </li>
+            <li>
+                Additional CRDTs.
+            </li>
+        </ul>
+
+
+        <p style="font-size:85%;">Legion is a result from the <a href="https://syncfree.lip6.fr" target="_blank">European
+            project Syncfree</a>. The Legion development team combines researchers from the <a
+                href="http://www.di.fct.unl.pt" target="_blank">Informatics Department</a>, <a
+                href="http://www.fct.unl.pt" target="_blank">FCT</a>, <a href="http://www.unl.pt/en/" target="_blank">NOVA
+            University of Lisbon</a> and the <a href="http://nova-lincs.di.fct.unl.pt" target="_blank">NOVA LINCS
+            Laboratory</a> in Portugal and researchers from the <a href="http://www.uni-kl.de/en/home/" target="_blank">Technische
+            Universität Kaiserslautern</a> in Germany.</p>
+        <p style="font-size:85%;">Part of the computing resources used for this work were supported by an AWS in
+            Education Research Grant.</p>
+
+        <p>
+            <img src="img/syncfree.png" style="background-color:grey" width="200" height="40" alt="Syncfree project">
+            <img src="img/logofct.png" width="200" height="40" alt="FCT, UNL">
+            <img src="img/logo_novalincs.png" width="200" height="50" alt="NOVA LINCS">
+            <img src="img/TUK.png" width="180" height="50" alt="Technische Universitat Kaiserslautern">
+        </p>
     </div>
 
 
@@ -113,6 +162,16 @@
             $("#alert_no_chrome").removeClass("hidden");
             $("#alert_yes_chrome").addClass("hidden");
         }
+
+        var on = true;
+        var toggle_status = function () {
+            if (on) {
+                $("#legion_status_panel_content").addClass("hidden");
+            } else {
+                $("#legion_status_panel_content").removeClass("hidden");
+            }
+            on = !on;
+        };
     </script>
     <div>
         <div class="page-header">
@@ -125,18 +184,43 @@
 
 
     <pre class="prettyprint linenums">
-    var legion = new Legion(options);           //New Legion instance.
-    legion.join();                              //Join the network.
-    var objectStore = legion.getObjectStore();  //Object API.
+    var options = {
+        client_id: randInt(), client_secret: randInt() //ex: username, pwd
+    };
+    var legion = new Legion(options);                  //New Legion instance.
+    var groupOptions = {
+        id: "default", secret: "default"               //ex: chat rooms with login keys
+    };
+    legion.joinGroup(groupOptions, function (group) {  //joins a group of peers
+        var objectStore = group.getObjectStore();      //object manipulation
+        var messageAPI = group.getMessageAPI();        //message sending
+        (...)
+    });
 </pre>
 
     <div>
         <div class="page-header row">
             <h1 id="crdts">Data types</h1>
+            <p>The main use of legion is sharing mutable-data between users.</p>
+            <p>Operations executed on any object are propagated between peers directly when connected,
+                and through the server between network-partitioned peers.
+                Propagation of changes is done always respecting causal order</p>
+            <p>The available data types are Counters, Sets, Maps, and Lists.
+                These are implemented as Delta-CRDTs<sup><a href="#refs">3</a></sup>,
+                meaning any concurrency conflicts are automatically resolved!
+            </p>
+            <p>
+                All data types can be instantiated with legion.DATA_TYPE.
+                <b>All clients connected to the group will replicate this object.</b>
+                Details on restricting creating new objects can be found within the GitHub tutorials.
+            </p>
         </div>
         <div class="row">
             <div id="example_counter">
                 <h2>Counter</h2>
+                <p>Counters are used to share an integer value between users.
+                    Counters can be incremented and decremented by any value.
+                </p>
                 <pre class="prettyprint linenums">
     var counter = objectStore.getOrCreate("counterID", legion.Counter);
     counter.increment(1);                         //Argument must be >= 1
@@ -210,6 +294,7 @@
             </div>
             <div id="example_set">
                 <h2>Set</h2>
+                <p>Sets keep objects only once.</p>
                 <pre class="prettyprint linenums">
     var set = objectStore.getOrCreate("setID", legion.Set);
 
@@ -330,6 +415,7 @@
             </div>
             <div id="example_map">
                 <h2>Map</h2>
+                <p>Maps keep key-value pairs.</p>
                 <pre class="prettyprint linenums">
     var map = objectStore.get("mapID", legion.Map);
 
@@ -456,6 +542,7 @@
             </div>
             <div id="example_list">
                 <h2>List</h2>
+                <p>Lists keep a ordered list of elements.</p>
                 <pre class="prettyprint linenums">
     var list = objectStore.get("listID", legion.List);
 
@@ -582,38 +669,13 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="row text-right text-justify">
-                <p>
-                    All data types can be instantiated with Legion.DATA_TYPE.
-                    Currently implementations internally use Delta CRDTs[<a
-                        href="http://dl.acm.org/citation.cfm?id=2911163">ACM link</a>].
-
-                    <b>All clients connected to the network will replicate this object.</b>
-                </p>
-
-                <div class="panel panel-warning">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">WIP:</h3>
-                    </div>
-                    <div class="panel-body">
-                        Set needs a mass insert option.
-                        Map needs a mass insert option.
-                        List needs a mass insert option.
-                        Garbage collect for all datatypes has temporarily been removed due to inefficient
-                        implementation.
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
         <div class="page-header row">
             <h1 id="messaging">Messaging</h1>
+            <p>Besides sharing objects, legion can also be used to send messages directly to the group.</p>
+            <p>Currently supported primitives are broadcast and unicast.</p>
         </div>
         <div class="row">
             <pre class="prettyprint linenums">
-    var messageAPI = legion.getMessageAPI();
     messageAPI.setHandlerFor(String, Function(arg));
     messageAPI.broadcast(String, *); //JSON.stringify(*) must parse.
 
@@ -644,149 +706,18 @@
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="row text-right text-justify">
-                <p>
-                    Messaging currently floods the network.
-                    The server signalling server also propagates to ensure that any
-                    partitioned networks or lonely clients also receive messages.
-                    <b>Notice:</b> the only guarantee is <b>at-most once</b> delivery.
-                    The usage of data-objects is strongly suggest for most applications.
-                </p>
-
-                <div class="panel panel-warning">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">WIP:</h3>
-                    </div>
-                    <div class="panel-body">
-                        An efficient point-to-point primitive (i.e., network routing).
-                    </div>
-                </div>
-
-            </div>
-        </div>
 
 
-        <div>
-            <div class="page-header row">
-                <h1 id="overlays">Networking</h1>
-            </div>
-            <div class="row">
-
-                <div class="row text-right text-justify">
-                    <p>
-                        Default behaviour is to use a network of nodes that gives priority over nearby nodes.
-                    </p>
-
-                    <p>
-                        More control over the topologies is available as follows:.
-                    </p>
-
-                    <pre class="prettyprint linenums">
-    var options = {
-        overlayProtocol:{
-            type: GeoOptimizedOverlay,        //default behaviour: more local connections
-            parameters: {
-                locator: HTTPPinger,
-                locations: ["http://ec2.us-east-1.amazonaws.com", "http://ec2.us-west-1.amazonaws.com",
-                        "ec2.eu-central-1.amazonaws.com", "ec2.eu-west-1.amazonaws.com"],
-                MIN_CLOSE_NODES: 3,           //attempts to keep this amount of close connections
-                MAX_CLOSE_NODES: 5,           //random drops if amount is over this
-                MIN_FAR_NODES: 1,             //attempts to keep this amount of far connections
-                MAX_FAR_NODES: 2,             //random drops if amount is over this
-                CLOSE_NODES_TIMER: 15 * 1000, //MinMax check interval for close nodes
-                FAR_NODES_TIMER: 55 * 1000,   //MinMax check interval for far nodes
-                LOCAL_FAILS_TILL_RESET: 20    //force locations update if no close nodes are found
-            }
-        overlayProtocol:{
-            type: Cliques,                    //all-to-all
-            parameters: {
-                floodInterval: 5000           //amount of times own id is flooded so other can connect
-            }
-        overlayProtocol:{
-            type: "NONE"                      //peer-to-peer disabled (data falls back to client-server, if enabled)
-        }
-      };
-    var legion = new Legion(options);</pre>
-
-                    <div class="panel panel-warning">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">WIP</h3>
-                        </div>
-                        <div class="panel-body">
-                            RandomGraph is under revision (currently removed from examples).
-                            DHT is WIP.
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div id="refs" class="page-header">
+            <h1>References</h1>
+            <p>1 Legion White Paper: <a
+                    href="https://syncfree.lip6.fr/attachments/article/59/legion-white-paper.pdf">PDF</a>
+            </p>
+            <p>2 Legion WWW'17 Conference Paper: <a
+                    href="http://novasys.di.fct.unl.pt/~alinde/publications/fp0964-vanderlinde.pdf">PDF</a></p>
+            <p>3 Delta CRDTs: <a href="http://dl.acm.org/citation.cfm?id=2911163">ACM link</a></p>
 
         </div>
-<!--
-        <div>
-            <div class="page-header">
-                <h1 id="server">NodeJS backend</h1>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="row text-right text-justify">
-
-                        <p>Backend usage and how to run.</p>
-
-                        <div class="panel panel-danger">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">WIP on examples for:</h3>
-                            </div>
-                            <div class="panel-body">
-                                Signalling and Auth server.
-
-                                Set needs a mass insert option.
-                                Map needs a mass insert option.
-                                List needs a mass insert option. Objects server.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        -->
-        <!---
-        <div>
-            <div class="page-header">
-                <h1 id="extensions">API Extensions</h1>
-            </div>
-            <div class="row">
-
-                <div class="col-md-6">
-                    <div class="row text-right text-justify">
-
-                        <p>Usage of the Google Drive Realtime API as a backend for legion.</p>
-
-                        <p>Can be used as API only (using NodeJS servers),
-                            signalling,
-                            object storage, and
-                            syncronization to legacy clients.
-
-                        </p>
-
-                        <div class="panel panel-danger">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">WIP on showcase examples for:</h3>
-                            </div>
-                            <div class="panel-body">
-                                GDrive instantiation.
-                                GDrive document sharing (access control).
-                                Usage options and legacy sync.
-                                Limitations.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        -->
-
         <div class="page-header">
             <h1 id="contact">Contact</h1>
         </div>
@@ -796,6 +727,9 @@
             <p>email:<a href="mailto:a.linde@campus.fct.unl.pt?Subject=Legion%20API"
                         target="_top">alinde@campus.fct.unl.pt</a></p>
         </div>
+        <div style="height: 80px;">
+
+        </div>
     </div>
 </div>
 
@@ -803,14 +737,28 @@
 <script type="application/javascript">
 
     var legion = new Legion();
-    var objectStore = legion.getObjectStore();
-    var messageAPI = legion.getMessageAPI();
+    var objectStore = null;
+    var messageAPI = null;
     var counter_1, counter_2, counter_3;
     var map_1, map_2, map_3;
     var set_1, set_2, set_3;
     var list_1, list_2, list_3;
 
-    legion.join();
+    var g_id = "default";
+
+    var parameters = location.search.substring(1).split("&");
+
+    for (var i = 0; i < parameters.length; i++) {
+        var temp = parameters[0].split("=");
+        if (temp[0] == "gid") {
+            g_id = temp[1]
+        }
+    }
+
+    var groupOptions = {
+        id: g_id,             //ex: chat room name
+        secret: "default"          //secret if required (ex: rooms can have a key)
+    };
 
     legion.overlay.setOnChange(function (change, peerIds, serverIds) {
         var network = $("#network_status");
@@ -827,15 +775,17 @@
             pc.innerText = "(" + peerIds.length + ") " + peerIds;
         }
         if (serverIds.length == 1) {
-            network.removeClass("panel-success");
-            network.addClass("panel-danger");
+            network.removeClass("alert-success");
+            network.addClass("alert-danger");
         } else {
-            network.removeClass("panel-danger");
-            network.addClass("panel-success");
+            network.removeClass("alert-danger");
+            network.addClass("alert-success");
         }
     });
 
-    legion.onJoin(function () {
+    legion.joinGroup(groupOptions, function (group) {
+        objectStore = group.getObjectStore();
+        messageAPI = group.getMessageAPI();
 
         //Messaging:
         $("#sendMessage").removeClass("disabled");
@@ -843,6 +793,79 @@
         messageAPI.setHandlerFor("Message", function (data) {
             add_to_list(data);
         });
+
+        //Counter:
+        counter_1 = objectStore.getOrCreate("counter_1", legion.Counter);
+        counter_2 = objectStore.getOrCreate("counter_2", legion.Counter);
+        counter_3 = objectStore.getOrCreate("counter_3", legion.Counter);
+
+        counter_1.setOnStateChange(function (updates, meta) {
+            console.log("Counter 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_1.getValue()));
+            $("#counter_1_value")[0].textContent = counter_1.getValue();
+        });
+        counter_2.setOnStateChange(function (updates, meta) {
+            console.log("Counter 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_2.getValue()));
+            $("#counter_2_value")[0].textContent = counter_2.getValue();
+        });
+        counter_3.setOnStateChange(function (updates, meta) {
+            console.log("Counter 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_3.getValue()));
+            $("#counter_3_value")[0].textContent = counter_3.getValue();
+        });
+
+        //Set:
+        set_1 = objectStore.getOrCreate("set_1", legion.Set);
+        set_2 = objectStore.getOrCreate("set_2", legion.Set);
+        set_3 = objectStore.getOrCreate("set_3", legion.Set);
+
+        set_1.setOnStateChange(function (updates, meta) {
+            console.log("Set 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_1.asArray()));
+            setChanged("#list_set_1", set_1.asArray(), 1);
+        });
+        set_2.setOnStateChange(function (updates, meta) {
+            console.log("Set 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_2.asArray()));
+            setChanged("#list_set_2", set_2.asArray(), 2);
+        });
+        set_3.setOnStateChange(function (updates, meta) {
+            console.log("Set 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_3.asArray()));
+            setChanged("#list_set_3", set_3.asArray(), 3);
+        });
+
+        //Map:
+        map_1 = objectStore.getOrCreate("map_1", legion.Map);
+        map_2 = objectStore.getOrCreate("map_2", legion.Map);
+        map_3 = objectStore.getOrCreate("map_3", legion.Map);
+
+        map_1.setOnStateChange(function (updates, meta) {
+            console.log("Map 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_1.asArray()));
+            mapChanged("#list_map_1", map_1.asArray(), 1);
+        });
+        map_2.setOnStateChange(function (updates, meta) {
+            console.log("Map 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_2.asArray()));
+            mapChanged("#list_map_2", map_2.asArray(), 2);
+        });
+        map_3.setOnStateChange(function (updates, meta) {
+            console.log("Map 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_3.asArray()));
+            mapChanged("#list_map_3", map_3.asArray(), 3);
+        });
+
+        //List:
+        list_1 = objectStore.getOrCreate("list_1", legion.List);
+        list_2 = objectStore.getOrCreate("list_2", legion.List);
+        list_3 = objectStore.getOrCreate("list_3", legion.List);
+
+        list_1.setOnStateChange(function (updates, meta) {
+            console.log("List 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_1.getValue()));
+            listChanged("#list_list_1", list_1.asArray());
+        });
+        list_2.setOnStateChange(function (updates, meta) {
+            console.log("List 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_2.getValue()));
+            listChanged("#list_list_2", list_2.asArray());
+        });
+        list_3.setOnStateChange(function (updates, meta) {
+            console.log("List 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_3.getValue()));
+            listChanged("#list_list_3", list_3.asArray());
+        });
+
 
         //Counter:
         $("#inc_1").removeClass("disabled");
@@ -893,8 +916,10 @@
         $("#add_3_list").removeClass("disabled");
         $("#remove_3_list").removeClass("disabled");
         listChanged("#list_list_3", list_3.asArray());
+    }, function (failMessage) {
+        console.error("failed to join")
+        console.error(failMessage)
     });
-
 
     //Messaging:
     var add_to_list = function (message) {
@@ -917,25 +942,6 @@
             messageAPI.broadcast("Message", {value: message, from: name});
         }
     };
-
-    //Counter:
-    counter_1 = objectStore.getOrCreate("counter_1", legion.Counter);
-    counter_2 = objectStore.getOrCreate("counter_2", legion.Counter);
-    counter_3 = objectStore.getOrCreate("counter_3", legion.Counter);
-
-    counter_1.setOnStateChange(function (updates, meta) {
-        console.log("Counter 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_1.getValue()));
-        $("#counter_1_value")[0].textContent = counter_1.getValue();
-    });
-    counter_2.setOnStateChange(function (updates, meta) {
-        console.log("Counter 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_2.getValue()));
-        $("#counter_2_value")[0].textContent = counter_2.getValue();
-    });
-    counter_3.setOnStateChange(function (updates, meta) {
-        console.log("Counter 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(counter_3.getValue()));
-        $("#counter_3_value")[0].textContent = counter_3.getValue();
-    });
-
     var inc_1 = function () {
         counter_1.increment(1);
     };
@@ -954,24 +960,6 @@
     var dec_3 = function () {
         counter_3.decrement(1);
     };
-
-    //Set:
-    set_1 = objectStore.getOrCreate("set_1", legion.Set);
-    set_2 = objectStore.getOrCreate("set_2", legion.Set);
-    set_3 = objectStore.getOrCreate("set_3", legion.Set);
-
-    set_1.setOnStateChange(function (updates, meta) {
-        console.log("Set 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_1.asArray()));
-        setChanged("#list_set_1", set_1.asArray(), 1);
-    });
-    set_2.setOnStateChange(function (updates, meta) {
-        console.log("Set 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_2.asArray()));
-        setChanged("#list_set_2", set_2.asArray(), 2);
-    });
-    set_3.setOnStateChange(function (updates, meta) {
-        console.log("Set 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(set_3.asArray()));
-        setChanged("#list_set_3", set_3.asArray(), 3);
-    });
     var setChanged = function (list_html_id, array, number) {
         $(list_html_id)[0].innerHTML = "";
         for (var i = 0; i < array.length; i++) {
@@ -998,26 +986,6 @@
     var remove_3_set = function () {
         set_3.remove($("#set_input")[0].value);
     };
-
-
-    //Map:
-    map_1 = objectStore.getOrCreate("map_1", legion.Map);
-    map_2 = objectStore.getOrCreate("map_2", legion.Map);
-    map_3 = objectStore.getOrCreate("map_3", legion.Map);
-
-    map_1.setOnStateChange(function (updates, meta) {
-        console.log("Map 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_1.asArray()));
-        mapChanged("#list_map_1", map_1.asArray(), 1);
-    });
-    map_2.setOnStateChange(function (updates, meta) {
-        console.log("Map 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_2.asArray()));
-        mapChanged("#list_map_2", map_2.asArray(), 2);
-    });
-    map_3.setOnStateChange(function (updates, meta) {
-        console.log("Map 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " array: " + JSON.stringify(map_3.asArray()));
-        mapChanged("#list_map_3", map_3.asArray(), 3);
-    });
-
     var mapChanged = function (list_html_id, array, type) {
         $(list_html_id)[0].innerHTML = "";
         for (var i = 0; i < array.length; i++) {
@@ -1054,26 +1022,6 @@
         var kv = getKeyValue();
         map_3.delete(kv.k);
     };
-
-    //List:
-    list_1 = objectStore.getOrCreate("list_1", legion.List);
-    list_2 = objectStore.getOrCreate("list_2", legion.List);
-    list_3 = objectStore.getOrCreate("list_3", legion.List);
-
-
-    list_1.setOnStateChange(function (updates, meta) {
-        console.log("List 1 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_1.getValue()));
-        listChanged("#list_list_1", list_1.asArray());
-    });
-    list_2.setOnStateChange(function (updates, meta) {
-        console.log("List 2 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_2.getValue()));
-        listChanged("#list_list_2", list_2.asArray());
-    });
-    list_3.setOnStateChange(function (updates, meta) {
-        console.log("List 3 change: " + JSON.stringify(updates) + " " + JSON.stringify(meta) + " value: " + JSON.stringify(list_3.getValue()));
-        listChanged("#list_list_3", list_3.asArray());
-    });
-
     var listChanged = function (list_html_id, array) {
         $(list_html_id)[0].innerHTML = "";
         for (var i = 0; i < array.length; i++) {
@@ -1113,6 +1061,25 @@
         var kv = getKeyValue_list();
         list_3.delete(kv.k);
     };
+</script>
+<script>
+    /*
+     (function (i, s, o, g, r, a, m) {
+     i['GoogleAnalyticsObject'] = r;
+     i[r] = i[r] || function () {
+     (i[r].q = i[r].q || []).push(arguments)
+     }, i[r].l = 1 * new Date();
+     a = s.createElement(o),
+     m = s.getElementsByTagName(o)[0];
+     a.async = 1;
+     a.src = g;
+     m.parentNode.insertBefore(a, m)
+     })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+     ga('create', 'UA-93487012-1', 'auto');
+     ga('send', 'pageview');
+     */
+
 </script>
 </body>
 </html>

@@ -1,4 +1,5 @@
-function Legion(options) {
+function Legion(options, onFailCallback) {
+    //TODO: use onFailCallback if auth fails.
     if (!options) {
         options = {};
     }
@@ -9,9 +10,13 @@ function Legion(options) {
     if (!options.client) {
         options.client = {id: this.randInt(5), secret: this.randInt(5)};
     }
-    if (!options.group) {
-        options.group = {id: "default", secret: "default"};
-    }
+
+    this.group = options.group;
+    this.client = options.client;
+
+    this.messageCount = this.randInt(5);
+    this.id = null;
+
     if (!options.overlayProtocol) {
         options.overlayProtocol = {
             type: GeoOptimizedOverlay,
@@ -27,20 +32,6 @@ function Legion(options) {
                 LOCAL_FAILS_TILL_RESET: 20
             }
         };
-        /*options.overlayProtocol = {
-         type: RandomGraphOverlay,
-         parameters: {
-         meta_interval: 15 * 1000,
-         initial_ttl: 3,
-         initial_n: 3,
-         min: 5,
-         max: 7,
-         conn_check_timeout: 8 * 1000,
-         conn_check_timeout_startup: 20 * 1000,
-         conn_check_timeout_multiplier: 1.5,
-         RAND_VAL: 0.3
-         }
-         }*/
     }
     if (!options.messagingProtocol) {
         options.messagingProtocol = FloodMessaging;
@@ -72,26 +63,34 @@ function Legion(options) {
         options.securityProtocol = SecurityProtocol;
     }
 
-    this.messageCount = this.randInt(5);
-    this.id = null;
+    this.secure = new this.options.securityProtocol(this);
 
     this.messagingAPI = new MessagingAPI(this);
+
     if (this.options.bullyProtocol)
         this.bullyProtocol = new this.options.bullyProtocol.type(this);
+
     this.overlay = new Overlay(this, this);
+
     this.connectionManager = new ConnectionManager(this);
+
     this.objectStore = new ObjectStore(this);
 
-    this.group = options.group;
-    this.client = options.client;
+    this.connectionManager.startSignallingConnection();
 }
+
 /**
  * Joins the overlay.
  */
-Legion.prototype.join = function () {
-    //TODO: why is security being started here?
-    this.secure = new this.options.securityProtocol(this);
-    this.connectionManager.startSignallingConnection();
+Legion.prototype.joinGroup = function (groupOptions, onJoinCallback, onFailCallback) {
+
+    if (!groupOptions) groupOptions = {};
+
+    if (!groupOptions.id)
+        groupOptions.id = "default";
+    if (!groupOptions.secret) groupOptions.secret = "default";
+    this.group = groupOptions
+    this.connectionManager.joinGroup(groupOptions, onJoinCallback, onFailCallback);
 };
 /**
  *
@@ -120,6 +119,7 @@ Legion.prototype.getObjectStore = function () {
 Legion.prototype.generateMessage = function (type, data, callback) {
     var message = {
         type: type,
+        group: this.group,
         s: this.id,
         ID: ++this.messageCount
     };
@@ -178,17 +178,5 @@ Legion.prototype.onJoin = function (callback) {
         callback();
     } else {
         this.onJoinCallback = callback;
-    }
-};
-
-Legion.prototype.onOpenServer = function (serverConnection) {
-    //TODO: signalling is seperate from secure and from data.
-    //TODO: error on verifying permissions to server.
-    if (!this.joined) {
-        this.joined = true;
-        if (this.onJoinCallback) {
-            this.onJoinCallback();
-            this.onJoinCallback = null;
-        }
     }
 };

@@ -35,6 +35,7 @@ This will give a warning as you are currently using self signed certificates (ht
 ### Development
 
  - /applications contains example applications.
+    - Please only refer to examples/index.html. Other pages have working source but not updated textual content.
  - /framework contains legion.
  - /framework/client has client only code.
  - /framework/client/protocols has overlay and messaging protocols.

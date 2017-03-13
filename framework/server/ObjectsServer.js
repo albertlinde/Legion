@@ -25,26 +25,39 @@ var CRDT_Database = require('./CRDT_Database.js').CRDT_Database;
 var ServerMessaging = require('./ServerMessaging.js').ServerMessaging;
 
 var Compressor = require('./../shared/Compressor.js');
-var D = require('./../shared/Duplicates.js');
+var Duplicates = require('./../shared/Duplicates.js').Duplicates;
 var ALMap = require('./../shared/ALMap.js').ALMap;
 
-var CRDT = require('./../shared/crdt.js').CRDT;
-
-
-var CRDT_LIB = {};
-
-CRDT_LIB.Counter = require('./../shared/crdtLib/deltaCounter.js').DELTA_Counter;
-CRDT_LIB.Set = require('./../shared/crdtLib/deltaSet.js').DELTA_Set;
-CRDT_LIB.Map = require('./../shared/crdtLib/deltaMap.js').DELTA_Map;
-CRDT_LIB.List = require('./../shared/crdtLib/deltaList.js').DELTA_List;
+var NodesStructure = require('./NodesStructure.js').NodesStructure;
 
 var util = require('util');
 var WebSocket = require('ws');
-//TODO: use storage... (not here)
-var storage = require('node-persist');
 
 var WebSocketServer;
 var wss;
+
+function OSGroup(id) {
+
+    this.peerSyncs = new ALMap();
+    this.messagingAPI = new ServerMessaging(this.peerSyncs);
+    this.db = new CRDT_Database(this.messagingAPI, this.peerSyncs, this);
+
+    this.id = id;
+    this.nodes = new NodesStructure();
+    this.active = false;
+
+}
+
+OSGroup.prototype.removeClient = function (id) {
+    this.nodes.removeNode(id);
+    this.peerSyncs.delete(id);
+};
+
+OSGroup.prototype.addClient = function (socket) {
+    this.nodes.addNode(socket.remoteID, socket);
+    var ps = new PeerSync(this.db, this.db, socket);
+    this.peerSyncs.set(socket.remoteID, ps);
+};
 
 initService();
 function initService() {
@@ -56,56 +69,25 @@ function initService() {
         }
     });
 
-    var peerSyncs = new ALMap();
-    var messagingAPI = new ServerMessaging(peerSyncs);
-
-    /**
-     * CRDT Database - contains all known crdts.
-     * @type {CRDT_Database}
-     */
-    var db = new CRDT_Database(messagingAPI, peerSyncs);
-    db.legion = {id: "db"};
-
-    db.defineCRDT(CRDT_LIB.Counter);
-    db.defineCRDT(CRDT_LIB.Set);
-    db.defineCRDT(CRDT_LIB.Map);
-    db.defineCRDT(CRDT_LIB.List);
-
-    db.handlers = {
-        peerSync: {
-            //The order is, when clients syncs objects are initiated on the server side.
-            //Only then can the server sync as this is when he HAS them.
-            //Only on PSA will the objects have the client's changes.
-            type: "OS:PS", callback: function (message, connection) {
-                //util.log("AA1" + JSON.stringify(message));
-                var objects = message.data;
-                for (var i = 0; i < objects.length; i++) {
-                    db.getOrCreate(objects[i].id, objects[i].type);
-                }
-                var ps = peerSyncs.get(connection.remoteID);
-                ps.sync();
-                ps.handleSync(message);
-            }
-        },
-        peerSyncAnswer: {
-            type: "OS:PSA", callback: function (message, connection) {
-                //util.log("AA2" + JSON.stringify(message));
-                var ps = peerSyncs.get(connection.remoteID);
-                ps.handleSyncAnswer(message, connection);
-            }
-        },
-        gotContentFromNetwork: {
-            type: "OS:C", callback: function (message, connection) {
-                //util.log("AA3" + JSON.stringify(message));
-                db.gotContentFromNetwork(message, connection);
-            }
+    var defaultGroup = {
+        id: "default",
+        secret: "default",
+        crdts: {
+            permitted: function (id, type) {
+                return false; //no more objects for the example/index page.
+            },
+            lists: ["list_1", "list_2", "list_3"],
+            maps: ["map_1", "map_2", "map_3"],
+            sets: ["set_1", "set_2", "set_3"],
+            counters: ["counter_1", "counter_2", "counter_3"]
         }
     };
+    var groups = new ALMap();
+
+    groups.set(defaultGroup.id, new OSGroup(defaultGroup.id, defaultGroup));
 
     { // Client connection handling.
-        var duplicates = new D.Duplicates();
-        var nodes = [];
-
+        var duplicates = new Duplicates();
         wss.on('connection', function (socket) {
                 //TODO: how does security work here?
                 //TODO: hardcoded ids.
@@ -113,61 +95,56 @@ function initService() {
                     id: "localhost:8004",
                     messageCount: 0
                 };
+                var g;
 
                 util.log("Connection.");
-                nodes.push(socket);
-                db.id = os.id;
-
-                /**
-                 * For generating messages that can be sent.
-                 * Type is required.
-                 * @param type {String}
-                 * @param data {Object}
-                 * @param callback {Function}
-                 */
-                //TODO: why is this?
-                db.versionVectorDiff = CRDT.versionVectorDiff;
-
-                //TODO: will be ClientSync
-                var ps = new PeerSync(db, db, socket);
-
 
                 socket.on('message', function incoming(message) {
                     var parsed = JSON.parse(message);
                     console.log("Got " + parsed.type + " from " + socket.remoteID + " s: " + parsed.s);
-
-
                     if (!duplicates.contains(parsed.s, parsed.ID)) {
                         duplicates.add(parsed.s, parsed.ID);
 
-                        var cb = function (parsed) {
-                            if (parsed.type == "CLIENT_ID") {
-                                console.log("New client: " + parsed.clientID);
-                                socket.remoteID = parsed.clientID;
-                                peerSyncs.set(socket.remoteID, ps);
-                                return;
-                            }
+                        if (parsed.type == "CLIENT_ID") {
+                            console.log("New client: " + parsed.clientID);
+                            socket.remoteID = parsed.clientID;
+                            socket.group = parsed.group;
 
-                            if (parsed.type == db.handlers.peerSync.type) {
-                                db.handlers.peerSync.callback(parsed, socket);
-                            } else if (parsed.type == db.handlers.peerSyncAnswer.type) {
-                                db.handlers.peerSyncAnswer.callback(parsed, socket);
-                            } else if (parsed.type == db.handlers.gotContentFromNetwork.type) {
-                                db.handlers.gotContentFromNetwork.callback(parsed, socket);
+                            g = groups.get(parsed.group.id);
+                            if (g) {
+                                g.addClient(socket);
                             } else {
-                                util.error("Unkown message type.");
-                                util.log(JSON.stringify(parsed));
+                                util.log("ERROR: group does not exist.");
+                                util.log("    creating group: " + parsed.group.id);
+                                groups.set(parsed.group.id, new OSGroup(parsed.group.id, parsed.group));
+                                g = groups.get(parsed.group.id);
+                                g.addClient(socket);
                             }
-                        };
-                        //TODO: this callback thing is no longer necessary as compression was removed.
-                        cb(parsed);
-
+                        } else {
+                            if (!socket.group) {
+                                util.log("ERROR: client has no group.")
+                            } else {
+                                g = groups.get(socket.group.id);
+                                var db = g.db;
+                                if (parsed.type == db.handlers.peerSync.type) {
+                                    db.handlers.peerSync.callback(parsed, socket);
+                                } else if (parsed.type == db.handlers.peerSyncAnswer.type) {
+                                    db.handlers.peerSyncAnswer.callback(parsed, socket);
+                                } else if (parsed.type == db.handlers.gotContentFromNetwork.type) {
+                                    db.handlers.gotContentFromNetwork.callback(parsed, socket);
+                                } else {
+                                    util.error("Unkown message type.");
+                                    util.log(JSON.stringify(parsed));
+                                }
+                            }
+                        }
                     } else {
                         util.log("Duplicate.")
                     }
                 });
-                socket.on('disconnect', function () {
-                    util.log("Disconnected.");
+                socket.on('close', function () {
+                    util.log("Disconnected " + socket.remoteID);
+                    g.removeClient(socket.remoteID);
                 });
             }
         )

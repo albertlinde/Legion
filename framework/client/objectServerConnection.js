@@ -15,6 +15,7 @@ function ObjectServerConnection(server, objectStore, legion) {
         //TODO: where is this explained?
         sc.legion.generateMessage("CLIENT_ID", null, function (result) {
             result.clientID = sc.legion.id;
+            result.group = sc.legion.group;
             sc.send(JSON.stringify(result));
         });
         sc.legion.connectionManager.onOpenServer(sc);
