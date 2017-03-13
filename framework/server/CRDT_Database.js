@@ -8,7 +8,7 @@ var DS_DLList = require('./../shared/dataStructures/DS_DLList.js');
 var DS_DLList = DS_DLList.DS_DLList;
 var util = require('util');
 var Compressor = require('./../shared/Compressor.js');
-var objectsDebug = false;
+var Config = require('./config.js');
 
 var CRDT_LIB = {};
 
@@ -21,7 +21,7 @@ function CRDT_Database(messaging, peerSyncs, g) {
     this.g = g;
     var cb = this;
     //TODO: the non-constant constants must be put somewhere neat.
-    this.peerSendInterval = 3000;
+    this.peerSendInterval = Config.objectsServer.CLEAR_QUEUE_INTERVAL;
     this.peersQueue = new DS_DLList();
 
     this.messagingAPI = messaging;
@@ -30,11 +30,10 @@ function CRDT_Database(messaging, peerSyncs, g) {
     this.crdts = new ALMap();
     this.types = new ALMap();
 
-    this.saveTime = 15000;
+    this.saveTime = Config.objectsServer.SAVE_INTERVAL;
 
     this.messageCount = Math.floor((Math.random() * Number.MAX_VALUE) % (Math.pow(10, 10)));
-    //TODO: hardcoded ID!
-    this.id = "localhost:8004";
+    this.id = Config.objectsServer.OBJECT_SERVER_ID;
 
     //TODO: this must be optional/definable
     //TODO: if there is a savetodisk there must be a load from disk?
@@ -46,7 +45,7 @@ function CRDT_Database(messaging, peerSyncs, g) {
 
     }, this.peerSendInterval);
 
-    this.legion = {id: "db"};
+    this.legion = {id: this.id};
 
     this.defineCRDT(CRDT_LIB.Counter);
     this.defineCRDT(CRDT_LIB.Set);
@@ -85,12 +84,7 @@ function CRDT_Database(messaging, peerSyncs, g) {
         }
     };
 
-    var os = {
-        id: "localhost:8004",
-        messageCount: 0
-    };
-
-    this.id = os.id;
+    this.id = Config.objectsServer.OBJECT_SERVER_ID;
 
     this.versionVectorDiff = CRDT.versionVectorDiff;
 }

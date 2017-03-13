@@ -14,7 +14,10 @@ config.signalling = {
 config.objectsServer = {
     PORT: 8000,
     key: "./keys/key.pem",
-    cert: "./keys/cert.pem"
+    cert: "./keys/cert.pem",
+    OBJECT_SERVER_ID: "OS",
+    CLEAR_QUEUE_INTERVAL: 3 * 1000,
+    SAVE_INTERVAL: 20 * 1000
 };
 
 /**
