@@ -8,7 +8,7 @@ var NodesStructure = require('./NodesStructure.js').NodesStructure;
 exports.Group = Group;
 
 
-function Group(options) {
+function Group(options, lastHB) {
     if (options)
         this.options = options;
     else
@@ -18,6 +18,7 @@ function Group(options) {
     util.log("New Group: " + options.id);
 
     this.nodes = new NodesStructure();
+    this.lastHB = lastHB;
 }
 
 Group.prototype.verifyClient = function (clientDetails, groupDetails) {
@@ -38,18 +39,25 @@ Group.prototype.canJoin = function (groupDetails, socket) {
     return true;
 };
 
+Group.prototype.addToNodes = function (socket) {
+    var m = {
+        type: "JoinGroupAnswer",
+        success: true
+    };
+    socket.groups.set(this.id, this);
+    socket.send(JSON.stringify(m));
+    this.nodes.addNode(socket.client.id, socket);
+    if (this.lastHB && this.nodes.size() == 1) {
+        socket.send(this.lastHB);
+    }
+};
+
 Group.prototype.handleMessage = function (socket, message, original) {
     util.log("Handle Message in " + this.id + " : " + message.type);
     if (message.type == "JoinGroup" || message.type == "CreateGroup") {
         if (this.canJoin(message.group, socket.client)) {
             util.log("   " + socket.client.id + " joined " + this.id);
-            var m = {
-                type: "JoinGroupAnswer",
-                success: true
-            };
-            socket.groups.set(this.id, this);
-            socket.send(JSON.stringify(m));
-            this.nodes.addNode(socket.client.id, socket);
+            this.addToNodes(socket);
         } else {
             util.log("TODO: Send back reject.");
             //TODO. send back reject.
@@ -59,13 +67,7 @@ Group.prototype.handleMessage = function (socket, message, original) {
             this.handle(socket, message, original);
         } else {
             if (this.canJoin(message.group, socket.client)) {
-                var m = {
-                    type: "JoinGroupAnswer",
-                    success: true
-                };
-                socket.groups.set(this.id, this);
-                socket.send(JSON.stringify(m));
-                this.nodes.addNode(socket.client.id, socket);
+                this.addToNodes(socket);
                 this.handle(socket, message, original);
             } else {
                 util.log("TODO: Send back not joined.");
@@ -76,6 +78,7 @@ Group.prototype.handleMessage = function (socket, message, original) {
 };
 
 Group.prototype.sendHB = function (HB) {
+    this.lastHB = HB;
     if (this.nodes.size() > 0) {
         util.log("Group active: " + this.id);
         var deadNodes = [];

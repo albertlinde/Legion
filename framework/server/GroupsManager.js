@@ -76,7 +76,7 @@ GroupsManager.prototype.addGroup = function (socket, groupDetails) {
  * @returns {Group}
  */
 GroupsManager.prototype.createNewGroup = function (groupDetails) {
-    return new Group(groupDetails);
+    return new Group(groupDetails, this.lastHB);
 };
 
 GroupsManager.prototype.canCreate = function (groupDetails, clientDetails) {
