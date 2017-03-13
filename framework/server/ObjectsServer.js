@@ -182,7 +182,10 @@ function initService() {
                     }
                 });
                 socket.on('close', function () {
-                    util.log("Disconnected " + socket.remoteID);
+                    if (socket.remoteID)
+                        util.log("Disconnected " + socket.remoteID);
+                    else
+                        util.log("Disconnected.");
                     g.removeClient(socket.remoteID);
                 });
             }

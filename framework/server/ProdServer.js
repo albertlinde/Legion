@@ -250,7 +250,10 @@ function initService() {
                 }
             );
             socket.on('close', function () {
-                util.log("Disconnected " + socket.client.id);
+                if (socket.client && socket.client.id)
+                    util.log("Disconnected " + socket.client.id);
+                else
+                    util.log("Disconnected.");
                 groupsManager.removeClient(socket);
             });
         }

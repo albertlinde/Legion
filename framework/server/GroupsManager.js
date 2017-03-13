@@ -104,6 +104,7 @@ GroupsManager.prototype.removeClient = function (socket) {
         var g = this.groups.get(gs[i]);
         g.removeClient(socket);
     }
+    this.clients.delete(socket.client.id);
 };
 
 GroupsManager.prototype.canJoin = function (groupDetails, clientDetails) {

@@ -25,7 +25,7 @@ Group.prototype.verifyClient = function (clientDetails, groupDetails) {
 };
 
 Group.prototype.removeClient = function (socket) {
-    util.log("removeClient in Group.");
+    this.nodes.removeNode(socket.client.id);
 };
 
 Group.prototype.clientInGroup = function (groupDetails, socket) {
