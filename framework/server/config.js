@@ -20,22 +20,22 @@ config.objectsServer = {
 /**
  *
  * @param client {{id: {string}, secret: {string}}}
- * @returns {boolean}
+ * @returns {Object}
  */
 config.clientCheck = function (client) {
     //TODO: programmer-defined.
-    return true;
+    return {success: true, message: "Done."};
 };
 
 /**
  *
  * @param client {{id: {string}, secret: {string}}}
  * @param group {{id: {string}, secret: {string}}}
- * @returns {boolean}
+ * @returns {Object}
  */
 config.groupCheck = function (client, group) {
     //TODO: programmer-defined.
-    return true;
+    return {success: true, message: "Done."};
 };
 
 module.exports = config;

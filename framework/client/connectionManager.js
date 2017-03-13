@@ -57,9 +57,7 @@ ConnectionManager.prototype.joinGroup = function (groupOptions, onJoinCallback, 
     }
     var cm = this;
     var doneJoin = function () {
-        console.log("C");
         cm.legion.generateMessage("JoinGroup", groupOptions, function (m) {
-            console.log("D");
             cm.serverConnection.send(m);
         });
     };
@@ -69,10 +67,8 @@ ConnectionManager.prototype.joinGroup = function (groupOptions, onJoinCallback, 
     this.onJoinCallback = onJoinCallback;
     this.onFailCallback = onFailCallback;
     if (this.legion.joined) {
-        console.log("A");
         doneJoin();
     } else {
-        console.log("B");
         this.internalJoinCallback = doneJoin;
     }
 };

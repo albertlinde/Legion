@@ -97,13 +97,22 @@ var Group = require('./Group.js').Group;
 initService();
 
 function initialIntegrityCheck(parsed) {
-    return true;
-    //TODO
+    return (
+            parsed.type &&
+            parsed.group && parsed.group.id &&
+            parsed.s &&
+            parsed.ID
+        ) ||
+        (
+            parsed.type == "Auth" &&
+            parsed.client && parsed.client.id && parsed.client.secret
+        );
+
 }
 
 var killClientConnection = function (socket, err, thrown_event, original_message) {
     //TODO: check error, log, remove the client, block the client.
-    util.log("Killing a client: " + socket.client.id);
+    util.log("Killing a client.");
     util.log(err);
     socket.close();
 };
@@ -164,12 +173,12 @@ function initService() {
                     try {
                         parsed = JSON.parse(original);
                     } catch (error) {
-                        killClientConnection(socket, "JSON parse failed.", null, original);
+                        killClientConnection(socket, "JSON parse failed.", error, original);
                         return;
                     }
 
                     if (!initialIntegrityCheck(parsed)) {
-                        killClientConnection(socket, "Failed on initial integrity check.", error, original);
+                        killClientConnection(socket, "Failed on initial integrity check.", null, original);
                         return;
                     }
 
@@ -179,7 +188,7 @@ function initService() {
                     }
 
                     duplicates.add(parsed.s, parsed.ID);
-                    util.log(" : " + parsed.type + ".");
+                    util.log(" : " + parsed.type + " from " + parsed.s + " : " + JSON.stringify(socket.client));
 
                     if (parsed.type == "Auth") {
                         var auth = authority.verifyClient(socket, parsed);
@@ -194,11 +203,18 @@ function initService() {
                         socket.send(JSON.stringify(authMessage));
                     } else {
                         if (!socket.authSuccess) {
-                            killClientConnection(socket, "Client attempted things before auth.", null, original);
+                            killClientConnection(socket, "Client attempted things before auth success.", null, original);
                             return;
                         }
 
                         if (parsed.group) {
+                            var g_auth = authority.verifyClientGroup(socket, parsed);
+                            if (!g_auth.success) {
+                                var g = generateMessage("AuthResponse");
+                                g.auth = g_auth;
+                                socket.send(JSON.stringify(g));
+                                return;
+                            }
                             util.log("   Group: -> " + JSON.stringify(parsed.group));
                             var group = groupsManager.getGroup(parsed.group);
                             if (group) {
@@ -228,8 +244,7 @@ function initService() {
                                 }
                             }
                         } else {
-                            console.error("correct client, no group");
-                            console.error(parsed);
+                            killClientConnection(socket, "Correct client, no group.", null, original);
                         }
                     }
                 }

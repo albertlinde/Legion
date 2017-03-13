@@ -100,13 +100,23 @@ AuthServer.prototype.randInt = function (N) {
     return Math.floor((Math.random() * Number.MAX_VALUE) % (Math.pow(10, N)));
 };
 
-
-//Only below is new.
-AuthServer.prototype.verifyClient = function (socket, parsed) {
-    var ret = this.verify(parsed);
-    ret.success = true;
+AuthServer.prototype.verifyClientGroup = function (socket, parsed) {
+    var ret = {};
+    var gc = this.groupCheck(parsed.client, parsed.group);
+    ret.success = gc.success;
+    ret.message = gc.message;
     return ret;
-    //TODO: use parsed.client.[id, secret]
+};
 
-    //TODO: return {success->bool, message->string to be given to client}
+AuthServer.prototype.verifyClient = function (socket, parsed) {
+    var ret = {};
+    var cc = this.clientCheck(parsed.client);
+    ret.success = cc.success;
+    ret.message = cc.message;
+    if (cc.success) {
+        ret.currentKey = this.getCurrentKey();
+        ret.serverPublicKey = this.publicKeyString;
+        ret.nodeID = this.getNewNodeID(parsed.client, parsed.group, parsed.nodeID);
+    }
+    return ret;
 };

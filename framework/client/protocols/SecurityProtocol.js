@@ -15,25 +15,24 @@ function SecurityProtocol(legion) {
     this.log = false;
 }
 
-SecurityProtocol.prototype.gotServerAuthenticationResult = function (result, connection) {
+SecurityProtocol.prototype.gotServerAuthenticationResult = function (auth, connection) {
     //console.log(result);
-    if (result.result == "Success" && !(connection instanceof PeerConnection)) {
+    if (auth.success == true && !(connection instanceof PeerConnection)) {
         if (!this.legion.id) {
-            this.legion.id = result.nodeID;
-            console.log("Got new nodeID: " + result.nodeID);
+            this.legion.id = auth.nodeID;
+            console.log("Got new nodeID: " + auth.nodeID);
         } else {
-            if (this.legion.id != result.nodeID) {
-                console.error("Got new nodeID: " + result.nodeID);
-                result.result = "No local success!";
+            if (this.legion.id != auth.nodeID) {
+                console.error("Got new nodeID: " + auth.nodeID);
                 return;
             }
         }
 
-        if (!this.keys.contains(result.currentKey.id)) {
-            console.log("Got new key: " + result.currentKey.id + " from " + connection.remoteID + ".");
-            this.keys.set(result.currentKey.id, result.currentKey);
-            this.currKey = result.currentKey.id;
-            this.serverPublicKey = forge.pki.publicKeyFromAsn1(result.serverPublicKey);
+        if (!this.keys.contains(auth.currentKey.id)) {
+            console.log("Got new key: " + auth.currentKey.id + " from " + connection.remoteID + ".");
+            this.keys.set(auth.currentKey.id, auth.currentKey);
+            this.currKey = auth.currentKey.id;
+            this.serverPublicKey = forge.pki.publicKeyFromAsn1(auth.serverPublicKey);
 
             //TODO: the following creates infinicle if key changes twice in a small timespan.
             while (!this.queue.isEmpty) {
@@ -51,7 +50,6 @@ SecurityProtocol.prototype.getServerAuthenticationChallenge = function () {
     var c = {};
     c.type = "Auth";
     c.client = this.legion.client;
-    c.group = this.legion.group;
     if (this.legion.id) {
         c.nodeID = this.legion.id;
     }

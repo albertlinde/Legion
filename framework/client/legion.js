@@ -11,7 +11,6 @@ function Legion(options, onFailCallback) {
         options.client = {id: this.randInt(5), secret: this.randInt(5)};
     }
 
-    this.group = options.group;
     this.client = options.client;
 
     this.messageCount = this.randInt(5);
@@ -89,7 +88,7 @@ Legion.prototype.joinGroup = function (groupOptions, onJoinCallback, onFailCallb
     if (!groupOptions.id)
         groupOptions.id = "default";
     if (!groupOptions.secret) groupOptions.secret = "default";
-    this.group = groupOptions
+    this.group = groupOptions;
     this.connectionManager.joinGroup(groupOptions, onJoinCallback, onFailCallback);
 };
 /**
