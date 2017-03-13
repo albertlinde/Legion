@@ -9,7 +9,7 @@ var delta_counter = {
     type: "C",
     crdt: {
         base_value: {
-            state: {dec: ALMap, inc: ALMap}
+            dec: ALMap, inc: ALMap
         },
         getValue: function () {
             var value = 0;

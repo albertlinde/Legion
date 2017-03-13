@@ -35,15 +35,13 @@ var delta_orMap = {
     type: "M",
     crdt: {
         base_value: {
-            state: {
-                elements: ALMap,
-                adds: ALMap,
-                removes: ALMap,
-                newElements: Number,
-                oldElements: Number,
-                added: ALMap,
-                removed: ALMap
-            }
+            elements: ALMap,
+            adds: ALMap,
+            removes: ALMap,
+            newElements: Number,
+            oldElements: Number,
+            added: ALMap,
+            removed: ALMap
         },
         getValue: function () {
             var ret = [];

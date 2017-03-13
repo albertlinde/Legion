@@ -11,15 +11,13 @@ var delta_set = {
     type: "S",
     crdt: {
         base_value: {
-            state: {
-                elements: ALMap,
-                adds: ALMap,
-                removes: ALMap,
-                newElements: Number,
-                oldElements: Number,
-                added: ALMap,
-                removed: ALMap
-            }
+            elements: ALMap,
+            adds: ALMap,
+            removes: ALMap,
+            newElements: Number,
+            oldElements: Number,
+            added: ALMap,
+            removed: ALMap
         },
         getValue: function () {
             return this.state.elements.keys();

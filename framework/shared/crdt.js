@@ -26,12 +26,12 @@ function CRDT(objectID, crdt, objectStore) {
      * Create the default value (empty object).
      */
     this.state = {};
-    var stateKeys = Object.keys(this.crdt.crdt.base_value.state);
+    var stateKeys = Object.keys(this.crdt.crdt.base_value);
     for (var i = 0; i < stateKeys.length; i++) {
-        if (typeof this.crdt.crdt.base_value.state[stateKeys[i]] == "function") {
-            this.state[stateKeys[i]] = new this.crdt.crdt.base_value.state[stateKeys[i]]();
+        if (typeof this.crdt.crdt.base_value[stateKeys[i]] == "function") {
+            this.state[stateKeys[i]] = new this.crdt.crdt.base_value[stateKeys[i]]();
         } else {
-            this.state[stateKeys[i]] = JSON.parse(JSON.stringify(this.crdt.crdt.base_value.state[stateKeys[i]]));
+            this.state[stateKeys[i]] = JSON.parse(JSON.stringify(this.crdt.crdt.base_value[stateKeys[i]]));
         }
     }
 

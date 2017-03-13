@@ -169,7 +169,7 @@ var Delta_Treedoc = {
     crdt: {
         base_value: {
             //list: Array.<{}>
-            state: {list: DS_TableList, removed: ALMap, removes: ALMap, oldElements: Number}
+            list: DS_TableList, removed: ALMap, removes: ALMap, oldElements: Number
         },
         getValue: function () {
             var ret = [];
