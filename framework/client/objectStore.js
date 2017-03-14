@@ -9,6 +9,7 @@ function ObjectStore(legion) {
 
     this.types = new ALMap();
     this.crdts = new ALMap();
+    this.fromRemotes = 0;
 
     this.objectServer = null;
     this.connecting = null;
@@ -300,6 +301,8 @@ ObjectStore.prototype.get = function (objectID) {
  * @param fromConnection
  */
 ObjectStore.prototype.propagate = function (objectID, opID, remoteArguments, versionVector, key, fromConnection, type) {
+    if (fromConnection)
+        this.fromRemotes++;
     var queuedOP = {
         objectID: objectID,
         opID: opID,
@@ -324,6 +327,7 @@ ObjectStore.prototype.propagate = function (objectID, opID, remoteArguments, ver
 };
 
 ObjectStore.prototype.propagateFlattenedDelta = function (objectID, flattenedDelta, fromConnection, type) {
+    this.fromRemotes++;
     var queuedDelta = {
         objectID: objectID,
         fd: flattenedDelta,
@@ -385,9 +389,8 @@ ObjectStore.prototype.onClientDisconnect = function (peerConnection) {
     }
 };
 
-ObjectStore.prototype.doneAPeerSync = function () {
+ObjectStore.prototype.doneAPeerSync = function (fromServer) {
     if (this.legion.connectionManager.onSyncCallback) {
-        this.legion.connectionManager.onSyncCallback();
-        this.legion.connectionManager.onSyncCallback = null;
+        this.legion.connectionManager.onSyncCallback(fromServer, this.fromRemotes != 0);
     }
 };

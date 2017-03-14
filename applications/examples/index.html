@@ -916,8 +916,16 @@
         $("#add_3_list").removeClass("disabled");
         $("#remove_3_list").removeClass("disabled");
         listChanged("#list_list_3", list_3.asArray());
-    }, function () {
-        console.info("A sync done.");
+    }, function (server, data) {
+        if (server) {
+            console.info("Sync done with server.");
+        } else
+            console.info("Sync done with peer.");
+        if (data) {
+            console.info("Sync done and received data.");
+        } else {
+            console.info("Sync done, no data.");
+        }
     }, function (failMessage) {
         console.error("failed to join");
         console.error(failMessage)
