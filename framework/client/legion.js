@@ -81,7 +81,7 @@ function Legion(options, onFailCallback) {
 /**
  * Joins the overlay.
  */
-Legion.prototype.joinGroup = function (groupOptions, onJoinCallback, onFailCallback) {
+Legion.prototype.joinGroup = function (groupOptions, onJoinCallback, onSyncCallback, onFailCallback) {
 
     if (!groupOptions) groupOptions = {};
 
@@ -89,7 +89,7 @@ Legion.prototype.joinGroup = function (groupOptions, onJoinCallback, onFailCallb
         groupOptions.id = "default";
     if (!groupOptions.secret) groupOptions.secret = "default";
     this.group = groupOptions;
-    this.connectionManager.joinGroup(groupOptions, onJoinCallback, onFailCallback);
+    this.connectionManager.joinGroup(groupOptions, onJoinCallback, onSyncCallback, onFailCallback);
 };
 /**
  *

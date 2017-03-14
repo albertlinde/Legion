@@ -725,7 +725,7 @@
             <p>Webpage: <a href="http://novasys.di.fct.unl.pt/~alinde/">Albert van der Linde</a></p>
 
             <p>email:<a href="mailto:a.linde@campus.fct.unl.pt?Subject=Legion%20API"
-                        target="_top">alinde@campus.fct.unl.pt</a></p>
+                        target="_top">a.linde@campus.fct.unl.pt</a></p>
         </div>
         <div style="height: 80px;">
 
@@ -916,8 +916,10 @@
         $("#add_3_list").removeClass("disabled");
         $("#remove_3_list").removeClass("disabled");
         listChanged("#list_list_3", list_3.asArray());
+    }, function () {
+        console.info("A sync done.");
     }, function (failMessage) {
-        console.error("failed to join")
+        console.error("failed to join");
         console.error(failMessage)
     });
 

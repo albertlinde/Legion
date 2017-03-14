@@ -48,9 +48,10 @@ function ConnectionManager(legion) {
     this.group = null;
     this.onJoinCallback = null;
     this.onFailCallback = null;
+    this.onSyncCallback = null;
 }
 
-ConnectionManager.prototype.joinGroup = function (groupOptions, onJoinCallback, onFailCallback) {
+ConnectionManager.prototype.joinGroup = function (groupOptions, onJoinCallback, onSyncCallback, onFailCallback) {
     if (this.tryJoin) {
         console.error("Multiple groups not allowed.");
         return;
@@ -66,6 +67,7 @@ ConnectionManager.prototype.joinGroup = function (groupOptions, onJoinCallback, 
     this.group = groupOptions;
     this.onJoinCallback = onJoinCallback;
     this.onFailCallback = onFailCallback;
+    this.onSyncCallback = onSyncCallback;
     if (this.legion.joined) {
         doneJoin();
     } else {

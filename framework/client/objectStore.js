@@ -384,3 +384,10 @@ ObjectStore.prototype.onClientDisconnect = function (peerConnection) {
         p.finalize();
     }
 };
+
+ObjectStore.prototype.doneAPeerSync = function () {
+    if (this.legion.connectionManager.onSyncCallback) {
+        this.legion.connectionManager.onSyncCallback();
+        this.legion.connectionManager.onSyncCallback = null;
+    }
+};

@@ -99,6 +99,8 @@ PeerSync.prototype.handleSyncAnswer = function (message) {
 
     this.clearQueue();
     clearTimeout(this.psTimeout);
+    if (this.objectStore.doneAPeerSync)
+        this.objectStore.doneAPeerSync();
 };
 
 /**
