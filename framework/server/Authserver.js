@@ -69,23 +69,6 @@ AuthServer.prototype.getNewNodeID = function (clientID, group, nodeID) {
     }
 };
 
-/**
- * @param c
- * @returns {{auth: {}}}
- */
-AuthServer.prototype.verify = function (c) {
-    var ret = {auth: {}};
-    if (c.type != "Auth" || !this.clientCheck(c.client) || !this.groupCheck(c.client, c.group))
-        ret.result = "Failed";
-    else {
-        ret.auth.result = "Success";
-        ret.auth.currentKey = this.getCurrentKey();
-        ret.auth.serverPublicKey = this.publicKeyString;
-        ret.auth.nodeID = this.getNewNodeID(c.client, c.group, c.nodeID);
-    }
-    return ret;
-};
-
 AuthServer.prototype.signedMessageDigest = function (string) {
     var md = forge.md.sha256.create();
     md.update(string);
