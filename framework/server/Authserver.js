@@ -77,7 +77,7 @@ AuthServer.prototype.signedMessageDigest = function (string) {
 
 AuthServer.prototype.verifyClientGroup = function (socket, parsed) {
     var ret = {};
-    var gc = this.groupCheck(parsed.client, parsed.group);
+    var gc = this.groupCheck(socket.client, parsed.group);
     ret.success = gc.success;
     ret.message = gc.message;
     return ret;
