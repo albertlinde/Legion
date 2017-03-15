@@ -99,6 +99,7 @@ GroupsManager.prototype.addClient = function (socket) {
 };
 
 GroupsManager.prototype.removeClient = function (socket) {
+    if(!socket.groups)return;
     var gs = socket.groups.keys();
     for (var i = 0; i < gs.length; i++) {
         var g = this.groups.get(gs[i]);
