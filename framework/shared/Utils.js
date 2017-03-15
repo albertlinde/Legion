@@ -54,6 +54,12 @@ function distanceFunction(arr1, arr2) {
     return intervalCount;
 }
 
+function randInt(N) {
+    if (!N) N = Number.MAX_SAFE_INTEGER;
+    return Math.floor((Math.random() * Number.MAX_VALUE) % (Math.pow(10, N)));
+}
+
 if (typeof exports != "undefined") {
     exports.distanceFunction = distanceFunction;
+    exports.randInt = randInt;
 }

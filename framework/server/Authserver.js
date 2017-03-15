@@ -1,6 +1,7 @@
 var ALMap = require('./../shared/ALMap.js').ALMap;
 var forge = require('node-forge');
 var util = require('util');
+var randInt = require('./../shared/Utils.js').randInt;
 var Config = require('./config.js');
 var storage = require('node-persist');
 exports.AuthServer = AuthServer;
@@ -64,7 +65,7 @@ AuthServer.prototype.getNewNodeID = function (clientID, group, nodeID) {
     if (nodeID) {
         return nodeID;
     } else {
-        return this.randInt(5);
+        return randInt(5);
     }
 };
 
@@ -89,15 +90,6 @@ AuthServer.prototype.signedMessageDigest = function (string) {
     var md = forge.md.sha256.create();
     md.update(string);
     return this.privateKey.sign(md);
-};
-
-/**
- * Returns a random integer.
- * @returns {number}
- */
-AuthServer.prototype.randInt = function (N) {
-    //TODO: why is this here?
-    return Math.floor((Math.random() * Number.MAX_VALUE) % (Math.pow(10, N)));
 };
 
 AuthServer.prototype.verifyClientGroup = function (socket, parsed) {

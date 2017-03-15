@@ -8,12 +8,12 @@ function Legion(options, onFailCallback) {
     this.onJoinCallback = null;
 
     if (!options.client) {
-        options.client = {id: this.randInt(5), secret: this.randInt(5)};
+        options.client = {id: randInt(5), secret: randInt(5)};
     }
 
     this.client = options.client;
 
-    this.messageCount = this.randInt(5);
+    this.messageCount = randInt(5);
     this.id = null;
 
     if (!options.overlayProtocol) {
@@ -156,15 +156,6 @@ Legion.prototype.reGenerateMessage = function (oldMessage, newData, callback) {
 Legion.prototype.getTime = function () {
     //TODO: this should be fixed.
     return Date.now();
-};
-
-/**
- * Returns a random integer.
- * @returns {number}
- */
-Legion.prototype.randInt = function (N) {
-    //TODO: why does the API export this?
-    return Math.floor((Math.random() * Number.MAX_VALUE) % (Math.pow(10, N)));
 };
 
 /**
