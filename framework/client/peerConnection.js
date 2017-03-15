@@ -161,7 +161,7 @@ PeerConnection.prototype.startLocal = function () {
     this.channel = this.peer.createDataChannel('sendDataChannel', null);
 
 
-    this.unique = this.legion.randInt(2) + 1;
+    this.unique = randInt(2) + 1;
     this.setChannelHandlers();
 
     this.peer.onicecandidate = function (event) {
