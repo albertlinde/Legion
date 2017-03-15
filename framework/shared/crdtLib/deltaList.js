@@ -224,7 +224,7 @@ var Delta_Treedoc = {
                     if (posToRemove >= 0) {
                         var ret = this.state.list.get(posToRemove);
                         this.state.list.remove(posToRemove);
-                        addTombstone(this.state, ret.d, data.delID);
+                        addTombstone(this.state, data.d, data.delID);
                         this.state.list.put(posToRemove, {id: data.id, value: data.v});
                         return {pos: posToRemove, removed: ret.value, added: data.v}
                     } else {
