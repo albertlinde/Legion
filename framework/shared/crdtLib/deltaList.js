@@ -140,7 +140,7 @@ var addTombstone = function (state, d, delID) {
 
     var newMax = delID.o;
     if (state.removed.get(delID.r)) {
-        newMax = Math.max(newMax, state.removed.get(delID));
+        newMax = Math.max(newMax, state.removed.get(delID.r));
     }
     state.removed.set(delID.r, newMax);
 };
