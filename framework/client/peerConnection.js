@@ -35,6 +35,7 @@ function PeerConnection(remoteID, legion) {
     }, KEEP_ALIVE_INTERVAL);
 
     this.log = false;
+    this.slidingWindow = null;
 }
 
 PeerConnection.prototype.keepAlive = function (force) {
@@ -63,30 +64,10 @@ PeerConnection.prototype.setChannelHandlers = function () {
     var pc = this;
     this.channel.onmessage = function (event) {
         if (pc.log) console.log("M1:" + event.data.length);
-
-        var deciphered = pc.legion.secure.decipher(event.data, pc, event);
-        if (!deciphered) {
-            console.error("Decipher returned no value.");
-            pc.cancelAll();
-            return;
-        }
-        if (deciphered === true)return;
-        var m = JSON.parse(deciphered);
-        if (!m) {
-            console.error(deciphered);
-            console.error(event.data);
-        }
-        if (pc.log) {
-            console.info("M2:" + deciphered.length);
-            console.info("M3:" + deciphered);
-        }
-        if (m.type == KEEP_ALIVE_MESSAGE.type) {
-            pc.lastKeepAlive = Date.now();
-            return;
-        }
-        pc.legion.messagingAPI.onMessage(pc, m);
+        pc.slidingWindow.receivedPartial(event.data);
     };
     this.channel.onopen = function (event) {
+        pc.slidingWindow = new MessageCutter(pc);
         clearTimeout(pc.init_timeout);
         pc.legion.connectionManager.onOpenClient(pc);
     };
@@ -94,6 +75,30 @@ PeerConnection.prototype.setChannelHandlers = function () {
         pc.legion.connectionManager.onCloseClient(pc);
         clearInterval(this.keepAliveInterval);
     };
+};
+
+PeerConnection.prototype.onFullMessage = function (msg) {
+    var deciphered = this.legion.secure.decipher(msg, this, event);
+    if (!deciphered) {
+        console.error("Decipher returned no value.");
+        this.cancelAll();
+        return;
+    }
+    if (deciphered === true)return;
+    var m = JSON.parse(deciphered);
+    if (!m) {
+        console.error(deciphered);
+        console.error(event.data);
+    }
+    if (this.log) {
+        console.info("M2:" + deciphered.length);
+        console.info("M3:" + deciphered);
+    }
+    if (m.type == KEEP_ALIVE_MESSAGE.type) {
+        this.lastKeepAlive = Date.now();
+        return;
+    }
+    this.legion.messagingAPI.onMessage(this, m);
 };
 
 /**
@@ -112,6 +117,7 @@ PeerConnection.prototype.cancelAll = function (notDuplicate) {
     clearTimeout(this.init_timeout);
     clearInterval(this.keepAliveInterval);
     this.peer = null;
+    this.slidingWindow = null;
     this.legion.connectionManager.onCloseClient(this);
 };
 
@@ -225,6 +231,16 @@ PeerConnection.prototype.getMeta = function () {
  * @param string {String}
  */
 PeerConnection.prototype.sendToSocket = function (string) {
+    if (this.slidingWindow && this.channel && this.channel.readyState == "open") {
+        this.slidingWindow.sendMessage(string);
+    }
+};
+
+/**
+ * NOT SAFE TO CALL FROM OUTSIDE OF THIS OBJECT!
+ * @param string {string}
+ */
+PeerConnection.prototype.sendReallyToSocket = function (string) {
     if (this.channel && this.channel.readyState == "open") {
         this.channel.send(string);
     } else {
@@ -246,9 +262,3 @@ PeerConnection.prototype.send = function (message) {
         console.warn("Peer has no open channel.")
     }
 };
-
-//TODO: the following should not be here:
-/**
- * WebRTC parameters.
- */
-
