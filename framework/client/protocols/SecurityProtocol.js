@@ -126,12 +126,12 @@ SecurityProtocol.prototype.decipher = function (msg, pc, old) {
     for (i = 2; msg[i] != '.'; i++) {
     }
 
-    var keyID = parseInt(msg.substring(2, i));
+    var keyID = msg.substring(2, i);
     if (keyID < this.getCurrentKeyID()) {
         console.error("Failed on decipher due KEY", "from: " + pc.remoteID);
         return;
     }
-    if (!this.getCurrentKeyID() || keyID > this.getCurrentKeyID()) {
+    if (!(this.getCurrentKeyID() === keyID)) {
         this.queue.addLast({msg: "7." + keyID + ".7:" + msg + "7..7", pc: pc});
         console.error("Key failed: " + keyID);
         this.legion.join();
