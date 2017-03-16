@@ -20,7 +20,7 @@ function MessageCutter(pc) {
  * @param string {String}
  */
 MessageCutter.prototype.sendMessage = function (string) {
-    var msgId = randInt(3);
+    var msgId = randInt(5);
     if (string.length < this.maxSize) {
         var final = msgId + ":1:1:" + string;
         this.sending[msgId] = [msgId, final, 1];

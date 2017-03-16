@@ -439,7 +439,10 @@ var delta_orMap = {
                             this.state.adds.set(rID, new ALMap());
                         }
                         this.state.adds.get(rID).set(opID, [key, value, removes]);
-                        this.state.added.set(rID, opID);
+                        if (this.state.added.get(rID))
+                            this.state.added.set(rID, Math.max(opID, this.state.added.get(rID)));
+                        else
+                            this.state.added.set(rID, opID);
 
                         for (var i = 0; i < removes.length; i++) {
                             var rem_value = removes[i][0];

@@ -229,6 +229,7 @@ var Delta_Treedoc = {
                         return {pos: posToRemove, removed: ret.value, added: data.v}
                     } else {
                         var posToInsert = findPositionForID(this.state.list, data.id);
+                        addTombstone(this.state, data.d, data.delID);
                         this.state.list.put(posToInsert, {id: data.id, value: data.v});
                         return {pos: posToInsert, added: data.v}
                     }
@@ -403,7 +404,6 @@ var Delta_Treedoc = {
                         var posToRemove = findDInList(this.state.list, removedD);
                         if (posToRemove >= 0) {
                             var ret = this.state.list.get(posToRemove);
-                            addTombstone(this.state, removedD, itemID);
                             this.state.list.remove(posToRemove);
 
                             for (var a = 0; a < change.added.length; a++) {
@@ -418,6 +418,7 @@ var Delta_Treedoc = {
                             }
                             change.removed.push({pos: posToRemove, removed: ret.value});
                         }
+                        addTombstone(this.state, removedD, itemID);
                     }
                 }
 
