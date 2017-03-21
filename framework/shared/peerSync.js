@@ -156,9 +156,11 @@ PeerSync.prototype.handleSync = function (message) {
     var ps = this;
 
     this.legion.generateMessage(this.objectStore.handlers.peerSyncAnswer.type, answer, function (result) {
-        result.destination = ps.peerConnection.remoteID;
-        ps.peerConnection.send(JSON.stringify(result));
-        ps.sentSA = true;
+        if (ps.peerConnection) {
+            result.destination = ps.peerConnection.remoteID;
+            ps.peerConnection.send(JSON.stringify(result));
+            ps.sentSA = true;
+        }
     });
 };
 
