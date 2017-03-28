@@ -1,4 +1,3 @@
-var bullyLog = true;
 function ServerBully(legion) {
     this.legion = legion;
 
@@ -12,9 +11,11 @@ function ServerBully(legion) {
                 if (connection instanceof ServerConnection) {
                     if (sb.amBullied()) {
                         //Have a bully, ServerConnection is probably in cleanup stage.
-                        console.log("Got SHB from server but am bullied by " + sb.bully);
+                        if (sb.debug)
+                            console.log("Got SHB from server but am bullied by " + sb.bully);
                     } else {
-                        console.log("Got SHB from server.");
+                        if (sb.debug)
+                            console.log("Got SHB from server.");
                         sb.lastSHB = message;
                         sb.bully = (sb.legion.id).toString();
                         sb.bullied();
@@ -26,7 +27,8 @@ function ServerBully(legion) {
                     }
                 } else {
                     if (sb.legion.secure.verifySHB(message)) {
-                        console.log("Got SHB from peer: " + connection.remoteID);
+                        if (sb.debug)
+                            console.log("Got SHB from peer: " + connection.remoteID);
                         var hisID = connection.remoteID;
                         if (hisID <= sb.bully) {
                             sb.lastSHB = message;
@@ -34,10 +36,10 @@ function ServerBully(legion) {
                                 sb.bully = hisID;
                                 sb.bullied();
                             }
-                            if (typeof bullyLog != "undefined" && bullyLog)
+                            if (sb.debug)
                                 console.log("Be bullied by: " + hisID);
                         } else {
-                            if (typeof bullyLog != "undefined" && bullyLog)
+                            if (sb.debug)
                                 console.log("Be bullied by: " + hisID + " but bully is: " + sb.bully);
                             sb.onClientConnection(connection);
                         }
@@ -55,6 +57,7 @@ function ServerBully(legion) {
     }
     this.legion.messagingAPI.setHandlerFor(this.handlers.bully.type, this.handlers.bully.callback);
     this.callbacks = [];
+    this.debug = false;
 }
 
 ServerBully.prototype.setOnBullyCallback = function (cb) {
@@ -70,7 +73,7 @@ ServerBully.prototype.bullied = function () {
 
 ServerBully.prototype.onClientConnection = function (peerConnection) {
     if (!this.amBullied() && this.lastSHB) {
-        if (typeof bullyLog != "undefined" && bullyLog)
+        if (this.debug)
             console.log("Being immediate bully to: " + peerConnection.remoteID);
         peerConnection.send(this.lastSHB);
     }
@@ -79,7 +82,7 @@ ServerBully.prototype.onClientConnection = function (peerConnection) {
 ServerBully.prototype.onClientDisconnect = function (peerConnection) {
     //No op.
     if (peerConnection.remoteID == this.bully) {
-        if (typeof bullyLog != "undefined" && bullyLog)
+        if (this.debug)
             console.log("Lost bully: " + peerConnection.remoteID);
         var mustReconnect = true;
         var myBullyID = (this.legion.id).toString();
@@ -105,10 +108,10 @@ ServerBully.prototype.onClientDisconnect = function (peerConnection) {
             this.bully = myBullyID;
             this.bullied();
             this.floodBully();
-            if (typeof bullyLog != "undefined" && bullyLog)
+            if (this.debug)
                 console.log("Forcing bully.");
         } else {
-            if (typeof bullyLog != "undefined" && bullyLog)
+            if (this.debug)
                 console.log("Not forcing bully.");
         }
     }
@@ -147,24 +150,24 @@ ServerBully.prototype.floodBully = function () {
     if (!this.amBullied()) {
         var peers = [];
         if (this.legion.overlay.overlayProtocol instanceof GeoOptimizedOverlay) {
-            if (typeof bullyLog != "undefined" && bullyLog)
+            if (this.debug)
                 console.info("Bully: GeoOptimizedOverlay Flood.");
             peers = this.legion.overlay.overlayProtocol.getClosePeers();
 
         } else {
-            if (typeof bullyLog != "undefined" && bullyLog)
+            if (this.debug)
                 console.info("Bully: Regular Flood.");
             peers = this.legion.overlay.getPeers(this.legion.overlay.peerCount());
         }
 
         for (var i = 0; i < peers.length; i++) {
             peers[i].send(this.lastSHB);
-            if (typeof bullyLog != "undefined" && bullyLog)
+            if (this.debug)
                 console.log("Being bully to", peers[i].remoteID);
         }
 
     } else {
-        if (typeof bullyLog != "undefined" && bullyLog)
+        if (this.debug)
             console.log("My bully: " + this.bully);
     }
 };
