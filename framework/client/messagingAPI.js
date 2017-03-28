@@ -6,6 +6,8 @@ function MessagingAPI(legion) {
 
     this.callbacks = new ALMap();
     this.duplicates = new Duplicates();
+    this.messageDebug = false;
+    this.messageDebugDetail = false;
 }
 
 /**
@@ -22,10 +24,14 @@ MessagingAPI.prototype.onMessage = function (connection, message) {
             return;
         }
     }
-    if (message.destination)
-        console.log(message.type + " from " + connection.remoteID + " by " + message.s + " to " + message.destination + ".");
-    else
-        console.log(message.type + " from " + connection.remoteID + " by " + message.s + ".");
+    if (this.messageDebug)
+        if (message.destination)
+            console.log(message.type + " from " + connection.remoteID + " by " + message.s + " to " + message.destination + ".");
+        else
+            console.log(message.type + " from " + connection.remoteID + " by " + message.s + ".");
+    if (this.messageDebugDetail)
+        console.log(message);
+
     if (!message.destination || (message.destination && message.destination == this.legion.id)) {
         this.deliver(message, connection);
         if (message.p) {

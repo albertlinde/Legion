@@ -107,6 +107,7 @@ SecurityProtocol.prototype.decipher = function (msg, pc, old) {
     ) {
         if (this.log) console.log("MC: First and last.");
     } else {
+        console.error("Message cutting failed!");
         if (msg[msg.length - 4] == "7" && msg[msg.length - 3] == "." && msg[msg.length - 2] == "." && msg[msg.length - 1] == "7") {
             msg = this.temp[pc.remoteID] + msg;
             this.temp[pc.remoteID] = "";

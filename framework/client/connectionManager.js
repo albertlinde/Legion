@@ -49,6 +49,7 @@ function ConnectionManager(legion) {
     this.onJoinCallback = null;
     this.onFailCallback = null;
     this.onSyncCallback = null;
+    this.debug = false;
 }
 
 ConnectionManager.prototype.joinGroup = function (groupOptions, onJoinCallback, onSyncCallback, onFailCallback) {
@@ -160,7 +161,8 @@ ConnectionManager.prototype.handleSignalling = function (message) {
 };
 
 ConnectionManager.prototype.onCloseServer = function (serverConnection) {
-    console.log(this.legion.getTime() + " Overlay CLOSE " + this.legion.id + " to " + serverConnection.remoteID + " of type " + (serverConnection.constructor.name));
+    if (this.debug)
+        console.log(this.legion.getTime() + " Overlay CLOSE " + this.legion.id + " to " + serverConnection.remoteID + " of type " + (serverConnection.constructor.name));
     if (serverConnection instanceof this.legion.options.signallingConnection.type) {
         this.serverConnection = null;
         this.isStartingserverConnection = false;
@@ -176,7 +178,8 @@ ConnectionManager.prototype.onCloseServer = function (serverConnection) {
 };
 
 ConnectionManager.prototype.onOpenServer = function (serverConnection) {
-    console.log(this.legion.getTime() + " Overlay OPEN " + this.legion.id + " to " + serverConnection.remoteID + " of type " + (serverConnection.constructor.name));
+    if (this.debug)
+        console.log(this.legion.getTime() + " Overlay OPEN " + this.legion.id + " to " + serverConnection.remoteID + " of type " + (serverConnection.constructor.name));
     if (serverConnection instanceof this.legion.options.signallingConnection.type) {
         this.serverConnection = serverConnection;
         if (this.internalJoinCallback) {
@@ -195,7 +198,8 @@ ConnectionManager.prototype.onOpenServer = function (serverConnection) {
 };
 
 ConnectionManager.prototype.onOpenClient = function (clientConnection) {
-    console.log(this.legion.getTime() + " Overlay OPEN " + this.legion.id + " to " + clientConnection.remoteID);
+    if (this.debug)
+        console.log(this.legion.getTime() + " Overlay OPEN " + this.legion.id + " to " + clientConnection.remoteID);
     this.legion.overlay.addPeer(clientConnection);
     //TODO: the ifs will be void.
     if (this.legion.objectStore)
@@ -206,7 +210,8 @@ ConnectionManager.prototype.onOpenClient = function (clientConnection) {
 
 ConnectionManager.prototype.onCloseClient = function (clientConnection) {
     if (this.peerConnections.contains(clientConnection.remoteID)) {
-        console.log(this.legion.getTime() + " Overlay CLOSE " + this.legion.id + " to " + clientConnection.remoteID);
+        if (this.debug)
+            console.log(this.legion.getTime() + " Overlay CLOSE " + this.legion.id + " to " + clientConnection.remoteID);
         this.peerConnections.delete(clientConnection.remoteID);
         this.legion.overlay.removePeer(clientConnection);
         //TODO: the ifs will be void.
