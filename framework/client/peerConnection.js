@@ -1,11 +1,11 @@
-var DEFAULT_PEER_INIT_TIMEOUT = 15 * 1000;
+var DEFAULT_PEER_INIT_TIMEOUT = 10 * 1000;
 
-var KEEP_ALIVE_INTERVAL = 25 * 1000;
+var KEEP_ALIVE_INTERVAL = 4 * 1000;
 //TODO: constants should not be here.
 //TODO:  optimize sdp.
 //TODO: also send the current key id-> if receive a higher number then re-join the network.
 var KEEP_ALIVE_MESSAGE = {type: "ka"};
-var KEEP_ALIVE_MUST_HAVE = 35000;
+var KEEP_ALIVE_MUST_HAVE = 10 * 1000;
 var detailedDebug = false;
 function PeerConnection(remoteID, legion) {
     if (detailedDebug) {
@@ -45,6 +45,7 @@ PeerConnection.prototype.keepAlive = function (force) {
     }
 
     if (this.lastKeepAlive + KEEP_ALIVE_MUST_HAVE < Date.now()) {
+        if(this.log)
         console.warn("Peer " + this.legion.id + " keepAlive timeout from " + this.remoteID + ".");
         if (this.isAlive())
             this.channel.close();
@@ -72,7 +73,7 @@ PeerConnection.prototype.setChannelHandlers = function () {
         pc.legion.connectionManager.onOpenClient(pc);
     };
     this.channel.onclose = function (event) {
-        pc.legion.connectionManager.onCloseClient(pc);
+        pc.cancelAll(true);
         clearInterval(this.keepAliveInterval);
     };
 };
@@ -149,7 +150,6 @@ PeerConnection.prototype.return_ice = function (candidate) {
 
 PeerConnection.prototype.onicecandidate = function (event) {
     if (event.candidate) {
-
         this.legion.connectionManager.sendICE(event.candidate, this.unique, this);
     }
 };

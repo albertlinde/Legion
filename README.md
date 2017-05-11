@@ -15,6 +15,13 @@ cd Legion
 npm install #obtains required dependencies and setups development keys.
 ```
 
+To install existing games built on top of legion:
+```sh
+cd applications #these folders are expected in the applications folder.
+git clone https://bitbucket.org/pfouto/legion-shooter.git
+git clone https://bitbucket.org/pfouto/pacman-mp.git
+```
+
 ### Running
 
 Startup now runs on ports 80 and 443.

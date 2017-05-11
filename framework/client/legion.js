@@ -42,8 +42,8 @@ function Legion(options, onFailCallback) {
     }
     if (!options.objectOptions) {
         options.objectOptions = {
-            serverInterval: 5000,
-            peerInterval: 10
+            serverInterval: 800,
+            peerInterval: 15
         };
     }
     if (!options.bullyProtocol) {

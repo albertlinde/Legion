@@ -49,6 +49,8 @@ app.get('/', function (req, res, next) {
 //Static files.
 var static_files = [
     ["/node_modules", express.static(path.resolve('./../../node_modules'))],
+    ["/pacman", express.static(path.resolve('./../../applications/pacman-mp'))],
+    ["/shooter", express.static(path.resolve('./../../applications/legion-shooter'))],
     ["/applications", express.static(path.resolve('./../../applications/'))],
     ["/applications/examples", express.static(path.resolve('./../../applications/examples'))],
     ["/img", express.static(path.resolve('./../../applications/examples/img'))]
