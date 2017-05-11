@@ -184,13 +184,16 @@ function initService() {
                         return;
                     }
 
-                    if (duplicates.contains(parsed.s, parsed.ID)) {
-                        util.log(" : d " + parsed.type + ".");
-                        return;
+                    if (parsed.s) {
+                        if (duplicates.contains(parsed.s, parsed.ID)) {
+                            util.log(" : d " + parsed.type + ".");
+                            return;
+                        }
+                        duplicates.add(parsed.s, parsed.ID);
+                        util.log(" : " + parsed.type + " from " + parsed.s + " : " + JSON.stringify(socket.client));
+                    } else if (parsed.client) {
+                        util.log(" : " + parsed.type + " from " + JSON.stringify(parsed.client));
                     }
-
-                    duplicates.add(parsed.s, parsed.ID);
-                    util.log(" : " + parsed.type + " from " + parsed.s + " : " + JSON.stringify(socket.client));
 
                     if (parsed.type == "Auth") {
                         var auth = authority.verifyClient(socket, parsed);

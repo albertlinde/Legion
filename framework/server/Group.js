@@ -100,6 +100,33 @@ Group.prototype.sendHB = function (HB) {
     }
 };
 
+Group.prototype.broadcast = function (message, nodes, socket) {
+    util.log("Broadcast: " + message.type);
+    var end = nodes.size();
+    if (message.N) {
+        end = Math.min(message.N, end);
+    }
+    if (message.ttl) {
+        message.ttl--;
+    }
+    var message_as_string = JSON.stringify(message);
+    var deadNodes = [];
+    for (var i = 0; i < end; i++) {
+        //TODO: if sending to N, randomize the nodes it is sent to.
+        var node = nodes.getNodeByPos(i);
+        if (node === socket)continue;
+        if (node.client.id == message.s)continue;
+
+        if (node.readyState == 1) {
+            util.log("   -> Sending to " + node.client.id);
+            node.send(message_as_string);
+        } else {
+            deadNodes.push(node.client.id);
+        }
+    }
+    nodes.removeAllNodes(deadNodes);
+};
+
 Group.prototype.handle = function (socket, message, original) {
     var nodes = this.nodes;
     if (message.type == "CR") {
@@ -216,75 +243,16 @@ Group.prototype.handle = function (socket, message, original) {
             if (node && node.readyState == 1) {
                 util.log("Destination message: " + message.type);
                 util.log("   -> Sending to " + message.destination);
-                node.send(message);
+                try {
+                    node.send(message);
+                } catch (e) {
+                    util.log("Destination message cancelled:");
+                    this.broadcast(message, nodes, socket);
+
+                }
                 return;
             }
         }
-        util.log("Broadcast: " + message.type);
-        var end = nodes.size();
-        if (message.N) {
-            end = Math.min(message.N, end);
-        }
-        if (message.ttl) {
-            message.ttl--;
-        }
-        var message = JSON.stringify(message);
-        var deadNodes = [];
-        for (var i = 0; i < end; i++) {
-            //TODO: if sending to N, randomize the nodes it is sent to.
-            var node = nodes.getNodeByPos(i);
-            if (node === socket)continue;
-            if (node.client.id == message.s)continue;
-
-            if (node.readyState == 1) {
-                util.log("   -> Sending to " + node.client.id);
-                node.send(message);
-            } else {
-                deadNodes.push(node.client.id);
-            }
-        }
-        nodes.removeAllNodes(deadNodes);
+        this.broadcast(message, nodes, socket);
     }
-};
-
-function NodesStructure() {
-    this.nodesMap = {};
-    this.count = 0;
-    this.keys = [];
-}
-
-NodesStructure.prototype.size = function () {
-    return this.count;
-};
-
-NodesStructure.prototype.contains = function (id) {
-    return this.nodesMap[id] != null;
-};
-
-NodesStructure.prototype.getNode = function (id) {
-    return this.nodesMap[id];
-};
-NodesStructure.prototype.getNodeByPos = function (pos) {
-    if (pos == 0) {
-        this.keys = Object.keys(this.nodesMap);
-    }
-    return this.nodesMap[this.keys[pos]];
-};
-
-NodesStructure.prototype.addNode = function (id, socket) {
-    if (!this.contains(id))
-        this.count++;
-    this.nodesMap[id] = socket;
-};
-
-NodesStructure.prototype.removeAllNodes = function (idArray) {
-    for (var i = 0; i < idArray.length; i++) {
-        this.removeNode(idArray[i]);
-    }
-};
-
-NodesStructure.prototype.removeNode = function (id) {
-    if (this.contains(id))
-        this.count--;
-    delete this.nodesMap[id];
 };
