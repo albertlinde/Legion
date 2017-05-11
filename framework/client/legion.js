@@ -20,8 +20,13 @@ function Legion(options, onFailCallback) {
         options.overlayProtocol = {
             type: GeoOptimizedOverlay,
             parameters: {
-                locator: HTTPPinger,
-                locations: ["https://di.fct.unl.pt", "https://di.fct.unl.pt"],
+                locator: {
+                    type: IPLocator,
+                    locations: ["https://freegeoip.net/json/"],
+                    distance: 350
+                    //locator: HTTPPinger,
+                    //locations: ["https://www.google.com",{httpendPoints}],
+                },
                 MIN_CLOSE_NODES: 3,
                 MAX_CLOSE_NODES: 5,
                 MIN_FAR_NODES: 1,

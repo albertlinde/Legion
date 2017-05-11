@@ -1,4 +1,3 @@
-
 var ConnectRequest = "CR";
 var LocalRandomWalk = "LRW";
 var FarRandomWalk = "FRW";
@@ -68,7 +67,7 @@ function GeoOptimizedOverlay(overlay, legion) {
     /**
      * Parameterizable distance vector calculator.
      */
-    this.locator = new this.options.locator(this.options.locations, function (data) {
+    this.locator = new this.options.locator.type(this.options.locator.options, function (data) {
         instance.start(data);
     });
     this.locator.start();
@@ -84,7 +83,7 @@ GeoOptimizedOverlay.prototype.handleConnectRequest = function (message, connecti
     if (this.first)return;
 
     if (!this.overlay.hasPeer(message.s)) {
-        var actualDist = distanceFunction(this.distances, message.data.distances);
+        var actualDist = this.locator.distanceFunction(this.distances, message.data.distances);
         if (message.data.close && actualDist <= 1) {
             if (Math.random() < 0.3 || this.activeCloseNodes.length + this.futureCloseNodes.length < this.options.MAX_CLOSE_NODES) {
                 this.futureCloseNodes.push(message.s);
@@ -126,7 +125,7 @@ GeoOptimizedOverlay.prototype.handleLocalRandomWalk = function (message, connect
         }
     } else {
         if (!this.overlay.hasPeer(message.s)) {
-            var actualDist = distanceFunction(this.distances, message.data.distances);
+            var actualDist = this.locator.distanceFunction(this.distances, message.data.distances);
 
             //console.log("TTL==0, keeping, dist:" + actualDist);
             if (actualDist < 2) {
@@ -161,7 +160,7 @@ GeoOptimizedOverlay.prototype.handleFarRandomWalk = function (message, connectio
         }
     } else {
         if (!this.overlay.hasPeer(message.s)) {
-            var actualDist = distanceFunction(this.distances, message.data.distances);
+            var actualDist = this.locator.distanceFunction(this.distances, message.data.distances);
             if (actualDist < 2) {
                 if (this.activeCloseNodes.length + this.futureCloseNodes.length < this.options.MAX_CLOSE_NODES) {
 
@@ -182,7 +181,7 @@ GeoOptimizedOverlay.prototype.handleFarRandomWalk = function (message, connectio
 
 GeoOptimizedOverlay.prototype.handleDistancesUpdate = function (message, peerConnection) {
 
-    var actualDist = distanceFunction(this.distances, message.data.distances);
+    var actualDist = this.locator.distanceFunction(this.distances, message.data.distances);
 
     var ca = this.activeCloseNodes.indexOf(message.s);
     var cf = this.futureCloseNodes.indexOf(message.s);

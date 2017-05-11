@@ -5,18 +5,30 @@
  */
 
 var pingDebug = false;
-function HTTPPinger(locations, updateCallback) {
+function HTTPPinger(options, updateCallback) {
     this.times = 3;
-    this.locations = locations;
+    this.locations = options.locations;
     this.updateCallback = updateCallback;
 
     this.first = true;
 
     this.pings = [];
-    for (var i = 0; i < locations.length; i++) {
+    for (var i = 0; i < this.locations.length; i++) {
         this.pings[i] = [];
     }
 }
+HTTPPinger.INTERVAL = 50;
+
+HTTPPinger.prototype.distanceFunction = function (arr1, arr2) {
+    var intervalCount = 0;
+    for (var i = 0; i < arr1.length && i < arr2.length; i++) {
+
+        if (Math.abs(arr1[i] - arr2[i]) > HTTPPinger.INTERVAL) {
+            intervalCount++;
+        }
+    }
+    return intervalCount;
+};
 
 HTTPPinger.prototype.newData = function () {
     var ret = [];
@@ -107,12 +119,6 @@ HTTPPinger.prototype.makeCorsRequest = function (url, callback) {
     }
 };
 
-function dist(arr1, arr2) {
-    var sum = 0;
-
-    for (var i = 0; i < arr1.length && i < arr2.length; i++) {
-        sum += Math.pow((arr1[i] - arr2[i]), 2);
-    }
-
-    return Math.ceil(Math.sqrt(sum));
+if (typeof exports != "undefined") {
+    exports.HTTPPinger = HTTPPinger;
 }

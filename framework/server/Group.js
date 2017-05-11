@@ -2,11 +2,14 @@ var ALMap = require('./../shared/ALMap.js').ALMap;
 var forge = require('node-forge');
 var util = require('util');
 var Config = require('./config.js');
-var distanceFunction = require('./../shared/Utils.js').distanceFunction;
+var loc1 = require('./../shared/IPLocator.js');
+var IPLocator = new loc1.IPLocator();
+var loc2 = require('./../shared/HTTPPinger.js');
+var HTTPPinger = new loc2.HTTPPinger({locations:[]});
+
 var NodesStructure = require('./NodesStructure.js').NodesStructure;
 
 exports.Group = Group;
-
 
 function Group(options, lastHB) {
     if (options)
@@ -131,21 +134,42 @@ Group.prototype.handle = function (socket, message, original) {
             } else {
                 if (node.readyState == 1) {
                     if (node.distances) {
-                        var actualDistance = distanceFunction(node.distances, data.distances);
-                        util.log("    -> distance:" + actualDistance, node.distances, data.distances);
+                        if (node.distances instanceof Array && data.distances instanceof Array) {
+                            var actualDistance = HTTPPinger.distanceFunction(node.distances, data.distances);
+                            util.log("    -> distance:" + actualDistance, node.distances, data.distances);
 
-                        if (actualDistance <= 1 && !doneClose) {
-                            util.log("      -> Sending to close node " + node.client.id);
-                            node.send(original);
-                            sent = true;
-                            doneClose = true;
-                        }
+                            if (actualDistance <= 1 && !doneClose) {
+                                util.log("      -> Sending to close node " + node.client.id);
+                                node.send(original);
+                                sent = true;
+                                doneClose = true;
+                            }
 
-                        if (actualDistance > 1 && !doneFar) {
-                            util.log("      -> Sending to far node " + node.client.id);
-                            node.send(original);
-                            sent = true;
-                            doneFar = true;
+                            if (actualDistance > 1 && !doneFar) {
+                                util.log("      -> Sending to far node " + node.client.id);
+                                node.send(original);
+                                sent = true;
+                                doneFar = true;
+                            }
+                        } else if (node.distances.lat && node.distances.lon && data.distances.lat && data.distances.lon) {
+                            var kmdistance = IPLocator.distanceFunction(node.distances, data.distances);
+                            util.log("    -> distance in km:" + kmdistance, node.distances, data.distances);
+
+                            if (kmdistance <= 300 && !doneClose) {
+                                util.log("      -> Sending to close node " + node.client.id);
+                                node.send(original);
+                                sent = true;
+                                doneClose = true;
+                            }
+
+                            if (actualDistance > 300 && !doneFar) {
+                                util.log("      -> Sending to far node " + node.client.id);
+                                node.send(original);
+                                sent = true;
+                                doneFar = true;
+                            }
+                        } else {
+                            util.error("No distances", node.distances);
                         }
                     }
                 } else {
