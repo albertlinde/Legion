@@ -94,7 +94,7 @@ GroupsManager.prototype.getGroup = function (groupDetails) {
 };
 
 GroupsManager.prototype.addClient = function (socket) {
-    this.clients.set(socket.client.id, socket);
+    this.clients.set(socket.client, socket);
     socket.groups = new ALMap();
 };
 
@@ -105,7 +105,7 @@ GroupsManager.prototype.removeClient = function (socket) {
         var g = this.groups.get(gs[i]);
         g.removeClient(socket);
     }
-    this.clients.delete(socket.client.id);
+    this.clients.delete(socket.client);
 };
 
 GroupsManager.prototype.canJoin = function (groupDetails, clientDetails) {

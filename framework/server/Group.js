@@ -22,6 +22,9 @@ function Group(options, lastHB) {
 
     this.nodes = new NodesStructure();
     this.lastHB = lastHB;
+
+    this.extensive_log = false;
+    this.log = false;
 }
 
 Group.prototype.verifyClient = function (clientDetails, groupDetails) {
@@ -29,12 +32,11 @@ Group.prototype.verifyClient = function (clientDetails, groupDetails) {
 };
 
 Group.prototype.removeClient = function (socket) {
-    this.nodes.removeNode(socket.client.id);
+    this.nodes.removeNode(socket.client);
 };
 
 Group.prototype.clientInGroup = function (groupDetails, socket) {
-    util.log("client in Group.");
-    return this.nodes.contains(socket.client.id)
+    return this.nodes.contains(socket.client)
 };
 
 Group.prototype.canJoin = function (groupDetails, socket) {
@@ -49,17 +51,18 @@ Group.prototype.addToNodes = function (socket) {
     };
     socket.groups.set(this.id, this);
     socket.send(JSON.stringify(m));
-    this.nodes.addNode(socket.client.id, socket);
+    this.nodes.addNode(socket.client, socket);
     if (this.lastHB && this.nodes.size() == 1) {
         socket.send(this.lastHB);
     }
 };
 
 Group.prototype.handleMessage = function (socket, message, original) {
-    util.log("Handle Message in " + this.id + " : " + message.type);
+    if (this.extensive_log) util.log("Handle Message in " + this.id + " : " + message.type);
     if (message.type == "JoinGroup" || message.type == "CreateGroup") {
+        if (this.log) util.log("Handle Message in " + this.id + " : " + message.type);
         if (this.canJoin(message.group, socket.client)) {
-            util.log("   " + socket.client.id + " joined " + this.id);
+            util.log("   " + socket.client + " joined " + this.id);
             this.addToNodes(socket);
         } else {
             util.log("TODO: Send back reject.");
@@ -88,10 +91,10 @@ Group.prototype.sendHB = function (HB) {
         for (var i = 0; i < this.nodes.size(); i++) {
             var node = this.nodes.getNodeByPos(i);
             if (node.readyState == 1) {
-                util.log("  -> Sending HB to " + node.client.id);
+                util.log("  -> Sending HB to " + node.client);
                 node.send(HB);
             } else {
-                deadNodes.push(node.client.id);
+                deadNodes.push(node.client);
             }
         }
         this.nodes.removeAllNodes(deadNodes);
@@ -101,7 +104,10 @@ Group.prototype.sendHB = function (HB) {
 };
 
 Group.prototype.broadcast = function (message, nodes, socket) {
-    util.log("Broadcast: " + message.type);
+    if (this.log) util.log("Broadcast: " + message.type);
+    if (message.type == "Message") {
+        if (this.extensive_log) util.log(message.data);
+    }
     var end = nodes.size();
     if (message.N) {
         end = Math.min(message.N, end);
@@ -115,13 +121,19 @@ Group.prototype.broadcast = function (message, nodes, socket) {
         //TODO: if sending to N, randomize the nodes it is sent to.
         var node = nodes.getNodeByPos(i);
         if (node === socket)continue;
-        if (node.client.id == message.s)continue;
+        if (node.client == message.s) continue;
 
         if (node.readyState == 1) {
-            util.log("   -> Sending to " + node.client.id);
-            node.send(message_as_string);
+            if (this.log) util.log("   -> Sending to " + node.client);
+            try {
+                node.send(message_as_string);
+            }
+            catch (e) {
+                if (this.log) util.log("   -> Sending to " + node.client + "failed.");
+                deadNodes.push(node.client);
+            }
         } else {
-            deadNodes.push(node.client.id);
+            deadNodes.push(node.client);
         }
     }
     nodes.removeAllNodes(deadNodes);
@@ -150,11 +162,11 @@ Group.prototype.handle = function (socket, message, original) {
         nodes.getNodeByPos(0);//resets keys.
 
         var sent = false;
-        util.log("Got ConnectRequest to (" + data.close + "," + data.far + ")from " + socket.client.id);
+        if (this.extensive_log) util.log("Got ConnectRequest to (" + data.close + "," + data.far + ")from " + socket.client);
 
         for (var i = start; end > 0;) {
             var node = nodes.getNodeByPos(i);
-            util.log("  -> Checking  node " + node.client.id + " from " + i + " [" + start + "," + end + "]");
+            if (this.extensive_log) util.log("  -> Checking  node " + node.client + " from " + i + " [" + start + "," + end + "]");
 
             if (node === socket) {
                 //don't send back.
@@ -163,34 +175,34 @@ Group.prototype.handle = function (socket, message, original) {
                     if (node.distances) {
                         if (node.distances instanceof Array && data.distances instanceof Array) {
                             var actualDistance = HTTPPinger.distanceFunction(node.distances, data.distances);
-                            util.log("    -> distance:" + actualDistance, node.distances, data.distances);
+                            if (this.extensive_log) util.log("    -> distance:" + actualDistance, node.distances, data.distances);
 
                             if (actualDistance <= 1 && !doneClose) {
-                                util.log("      -> Sending to close node " + node.client.id);
+                                if (this.extensive_log) util.log("      -> Sending to close node " + node.client);
                                 node.send(original);
                                 sent = true;
                                 doneClose = true;
                             }
 
                             if (actualDistance > 1 && !doneFar) {
-                                util.log("      -> Sending to far node " + node.client.id);
+                                if (this.extensive_log) util.log("      -> Sending to far node " + node.client);
                                 node.send(original);
                                 sent = true;
                                 doneFar = true;
                             }
                         } else if (node.distances.lat && node.distances.lon && data.distances.lat && data.distances.lon) {
                             var kmdistance = IPLocator.distanceFunction(node.distances, data.distances);
-                            util.log("    -> distance in km:" + kmdistance, node.distances, data.distances);
+                            if (this.extensive_log) util.log("    -> distance in km:" + kmdistance, node.distances, data.distances);
 
                             if (kmdistance <= 300 && !doneClose) {
-                                util.log("      -> Sending to close node " + node.client.id);
+                                if (this.extensive_log) util.log("      -> Sending to close node " + node.client);
                                 node.send(original);
                                 sent = true;
                                 doneClose = true;
                             }
 
                             if (actualDistance > 300 && !doneFar) {
-                                util.log("      -> Sending to far node " + node.client.id);
+                                if (this.extensive_log) util.log("      -> Sending to far node " + node.client);
                                 node.send(original);
                                 sent = true;
                                 doneFar = true;
@@ -200,7 +212,7 @@ Group.prototype.handle = function (socket, message, original) {
                         }
                     }
                 } else {
-                    deadNodes.push(node.client.id);
+                    deadNodes.push(node.client);
                 }
             }
             if (doneClose && doneFar) break;
@@ -235,7 +247,7 @@ Group.prototype.handle = function (socket, message, original) {
     }
     else if (message.type == "DU") {
         socket.distances = message.data.distances;
-        util.log("Updated distances for peer " + socket.client.id + ":" + socket.distances)
+        util.log("Updated distances for peer " + socket.client + ":" + socket.distances)
     } else {
         if (message.destination != null) {
             //Try to send do destination, on failure back to default behaviour.
@@ -244,7 +256,7 @@ Group.prototype.handle = function (socket, message, original) {
                 util.log("Destination message: " + message.type);
                 util.log("   -> Sending to " + message.destination);
                 try {
-                    node.send(message);
+                    node.send(JSON.stringify(message));
                 } catch (e) {
                     util.log("Destination message cancelled:");
                     this.broadcast(message, nodes, socket);

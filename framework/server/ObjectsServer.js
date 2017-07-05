@@ -147,8 +147,8 @@ function initService() {
                     util.log(" : " + parsed.type + " from " + parsed.s + " : " + JSON.stringify(socket.client));
 
                     if (parsed.type == "CLIENT_ID") {
-                        console.log("New client: " + parsed.clientID);
-                        socket.remoteID = parsed.client.id;
+                        console.log("New client: " + parsed.client.id + " with node: " + parsed.nodeID);
+                        socket.remoteID = parsed.nodeID;
                         socket.client = parsed.client;
                         socket.group = parsed.group;
 

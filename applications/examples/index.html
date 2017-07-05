@@ -47,7 +47,7 @@
                 <li><a href="#contact">Contact</a></li>
                 <li style="color: #FFFFFF;text-align: center;margin: auto;padding: 15px"><b>Games: </b></li>
                 <li><a href="/pacman/index.html">Pacman</a></li>
-                <li><a href="/shooter/game.html"><span style="color: #FFFFFF;"><b>Shooter</b></span></a></li>
+                <li><a href="/shooter"><span style="color: #FFFFFF;"><b>Shooter</b></span></a></li>
             </ul>
         </div>
     </div>
@@ -690,9 +690,11 @@
                     </div>
                     <div class="panel-body">
                         Name:
-                        <input type="text" placeholder="Albert" value="Albert" id="name">
+                        <input type="text" placeholder="Your usarname." value="" id="name">
                         Message:
-                        <input type="text" placeholder="Hi." value="Hi." id="message">
+                        <input type="text" placeholder="Your message." value="Hi." id="message"
+                               onkeydown="if (event.keyCode == 13)
+                        sendMessage()">
 
                         <button onclick="sendMessage()" id="sendMessage" type="button"
                                 class="btn btn-xs btn-success disabled">Send
@@ -712,7 +714,7 @@
                     href="https://syncfree.lip6.fr/attachments/article/59/legion-white-paper.pdf">PDF</a>
             </p>
             <p>2 Legion WWW'17 Conference Paper:
-                [<a href="http://novasys.di.fct.unl.pt/~alinde/publications/a12-van_der_linde.pdf">PDF</a>]
+                [<a href="http://novasys.di.fct.unl.pt/~alinde/publications/fp0964-vanderlinde.pdf">PDF</a>]
                 [<a href="http://dl.acm.org/citation.cfm?id=3052673">ACM</a>]
                 [<a href="http://novasys.di.fct.unl.pt/~alinde/publications/cite/fp0964-vanderlinde.txt">Bib</a>]
             </p>
@@ -966,6 +968,8 @@
         if (messageAPI) {
             var name = $("#name")[0].value;
             var message = $("#message")[0].value;
+            if (name.length == 0 || message.length == 0)return;
+            $("#message")[0].value = "";
             messageAPI.broadcast("Message", {value: message, from: name});
         }
     };

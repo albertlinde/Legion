@@ -41,20 +41,19 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.get('/', function (req, res, next) {
-    util.log("Got index.html");
-    res.sendFile(path.resolve('./../../applications/examples/index.html'));
-});
+//Static routes.
+var static_routes = Config.routes;
+for (var i = 0; i < static_routes.length; i++) {
+    (function (i) {
+        app.get(static_routes[i][0], function (req, res, next) {
+            static_routes[i][2]();
+            res.sendFile(path.resolve(static_routes[i][1]));
+        });
+    })(i);
+}
 
 //Static files.
-var static_files = [
-    ["/node_modules", express.static(path.resolve('./../../node_modules'))],
-    ["/pacman", express.static(path.resolve('./../../applications/pacman-mp'))],
-    ["/shooter", express.static(path.resolve('./../../applications/legion-shooter'))],
-    ["/applications", express.static(path.resolve('./../../applications/'))],
-    ["/applications/examples", express.static(path.resolve('./../../applications/examples'))],
-    ["/img", express.static(path.resolve('./../../applications/examples/img'))]
-];
+var static_files = Config.statics;
 for (var i = 0; i < static_files.length; i++) {
     app.use(static_files[i][0], static_files[i][1]);
 }
@@ -147,7 +146,6 @@ function initService() {
         groupsManager.sendHB();
     }, Config.signalling.SERVER_HB_INTERVAL);
 
-
     var options = {};
 
     var groupsManager = new GroupsManager(options, generateMessage, authority);
@@ -167,6 +165,7 @@ function initService() {
     groupsManager.addGroup(null, defaultGroup);
     groupsManager.sendHB();
 
+    var log = false;
     wss.on('connection', function (socket) {
             util.log("Connection.");
             socket.on('message',
@@ -190,9 +189,9 @@ function initService() {
                             return;
                         }
                         duplicates.add(parsed.s, parsed.ID);
-                        util.log(" : " + parsed.type + " from " + parsed.s + " : " + JSON.stringify(socket.client));
+                        if (log) util.log(" : " + parsed.type + " from " + parsed.s + " : " + JSON.stringify(socket.client));
                     } else if (parsed.client) {
-                        util.log(" : " + parsed.type + " from " + JSON.stringify(parsed.client));
+                        if (log) util.log(" : " + parsed.type + " from " + JSON.stringify(parsed.client));
                     }
 
                     if (parsed.type == "Auth") {
@@ -200,7 +199,8 @@ function initService() {
                         util.log("Got Auth from " + JSON.stringify(parsed.client) + " : " + JSON.stringify(auth.success));
                         if (auth.success) {
                             socket.authSuccess = true;
-                            socket.client = parsed.client;
+                            socket.client = auth.nodeID;
+
                             groupsManager.addClient(socket);
                         }
                         var authMessage = generateMessage("AuthResponse");
@@ -220,8 +220,12 @@ function initService() {
                                 socket.send(JSON.stringify(g));
                                 return;
                             }
-                            util.log("   Group: -> " + JSON.stringify(parsed.group));
                             var group = groupsManager.getGroup(parsed.group);
+                            if (!group)
+                                util.log("   No Group: -> " + JSON.stringify(parsed.group));
+                            else if (group.log) {
+                                util.log("    Group: -> " + JSON.stringify(parsed.group));
+                            }
                             if (group) {
                                 group.handleMessage(socket, parsed, original);
                             } else {
